@@ -14,7 +14,7 @@ trait Swebind extends Library {
 }
 
 object Swebind {
-    private var _libswe:Swebind = null
+    private var _libswe:Swebind = _
     def run():Swebind = {
         if ( _libswe == null ) {
           _libswe = Native.loadLibrary("swe", classOf[Swebind])

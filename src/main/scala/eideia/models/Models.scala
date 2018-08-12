@@ -11,7 +11,7 @@ case class Location(
         admin2: String,
         elevation: Double,
         timezone: String,
-        id: Long)
+        id: Long = 0L)
 
 case class EventDate(date: String)
 
