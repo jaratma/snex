@@ -13,6 +13,10 @@ case class Location(
         timezone: String,
         id: Long = 0L)
 
+case class Admin1(country: String, regionCode: String, name: String)
+
+case class Admin2(country: String, region: String, subRegion: String, name: String)
+
 case class EventDate(date: String)
 
 case class LegacyData(

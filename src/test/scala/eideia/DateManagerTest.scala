@@ -27,8 +27,8 @@ class DateManagerTest extends FunSuite with Matchers {
     test("check here and now") {
         import ConfigManager._
         import atlas.AtlasQuery.getTimeZoneFromLocAndCountry
-        val loc: Location = getDefaulConfig
-        val timeZone: String = getTimeZoneFromLocAndCountry(loc.locality, loc.country)
+        val conf: NexConf = getDefaulConfig
+        val timeZone: String = getTimeZoneFromLocAndCountry(conf.locality, conf.country)
         val now = DateManager.now(timeZone)
         assert(now.getZone.toString == timeZone)
     }

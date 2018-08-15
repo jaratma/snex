@@ -5,7 +5,8 @@ import slick.jdbc.SQLiteProfile.api._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
-import eideia.models.Location
+import eideia.models.{Location, Admin1, Admin2}
+import eideia.userdata.{LegacyDataManager, LocationTriplet}
 
 object AtlasQuery {
 
@@ -25,6 +26,24 @@ object AtlasQuery {
             (name, latitude, longitude, country, admin1, admin2, elevation, timezone, id).mapTo[Location]
     }
 
+    final class Admin1Table(tag: Tag) extends Table[Admin1](tag, "admin1") {
+        def country = column[String]("country")
+        def regionCode = column[String]("regionCode")
+        def name = column[String]("name")
+
+        def * = (country,regionCode,name).mapTo[Admin1]
+    }
+
+    final class Admin2Table(tag: Tag) extends Table[Admin2](tag, "admin2") {
+
+        def country = column[String]("country")
+        def region = column[String]("regionCode")
+        def subregion = column[String]("regionCode")
+        def name = column[String]("name")
+
+        def * = (country,region, subregion, name).mapTo[Admin2]
+    }
+
     lazy val messages = TableQuery[LocationTable]
 
     val db = Database.forConfig("cities")
@@ -39,6 +58,17 @@ object AtlasQuery {
     def getTimeZoneFromLocAndCountry(loc: String, country: String): String = {
         val query = messages.filter(r => r.name === loc  && r.country === country).map(_.timezone)
         exec(query.result.headOption.map(_.get))
+    }
+
+    def getAdmin1CodeFromTriplet(triplet: LocationTriplet): String = {
+        val region = triplet.region
+        lazy val admins1 = TableQuery[Admin1Table]
+        val query = admins1.filter(r => r.name like region).map(_.regionCode)
+        exec(query.result.headOption) match {
+            case Some(code) => code
+            case _ => region
+        }
+
     }
 }
 

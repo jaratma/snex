@@ -6,6 +6,8 @@ import eideia.InitApp
 import scala.util.{Failure, Success, Try}
 import scala.collection.mutable.ArrayBuffer
 
+case class LocationTriplet(city: String, region: String, country: String)
+
 object LegacyDataManager {
     val driverClassName ="org.sqlite.JDBC"
     val url: String = s"jdbc:sqlite:${InitApp.userHome}/tmp/charts/charts.db"
@@ -52,6 +54,21 @@ object LegacyDataManager {
         }
         arybuf
 
+    }
+
+    def getLegacyLocationTriplets(table: String): Seq[LocationTriplet] = {
+        val arybuf = ArrayBuffer[LocationTriplet]()
+        val stmt: Try[Statement] = getStatement
+        assert(stmt.isSuccess)
+        val sql = s"select city, region, country from $table"
+        val rs: ResultSet = stmt.get.executeQuery(sql)
+        while (rs.next) {
+            val city = rs.getString("city")
+            val region = rs.getString("region")
+            val country = rs.getString("country")
+            arybuf += LocationTriplet(city,region,country)
+        }
+        arybuf
     }
 
     def convertTableChartsToCaseClass(table: String): Seq[LegacyData] = {

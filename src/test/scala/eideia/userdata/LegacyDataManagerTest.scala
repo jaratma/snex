@@ -30,4 +30,11 @@ class LegacyDataManagerTest extends FunSuite with Matchers {
         assert(countries.isInstanceOf[Seq[String]])
         countries.toSet[String].foreach(s => println(s))
     }
+
+    test("get location triplets") {
+        val triplets : Seq[LocationTriplet] = LegacyDataManager.getLegacyLocationTriplets("personal")
+        assert(triplets.isInstanceOf[Seq[LocationTriplet]])
+        println(triplets.size)
+    }
+
 }

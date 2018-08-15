@@ -8,7 +8,7 @@ class SwebindTest extends FunSuite with Matchers {
         val cn  = new String(new Array[Char](256))
         val swe = Swebind.run()
         val ver = swe.swe_version(cn)
-        assert(ver == "2.06")
+        assert(ver == "2.07.01")
     }
 
     test("path") {

@@ -23,6 +23,7 @@ libraryDependencies ++= Seq(
     "com.typesafe.slick" %% "slick"           % "3.2.3",
     "org.xerial"          % "sqlite-jdbc"     % "3.21.0",
     "com.github.pureconfig" %% "pureconfig" % "0.9.1",
+    "org.ini4j" % "ini4j" % "0.5.4",
     "ch.qos.logback"      % "logback-classic" % "1.2.3"
 )
 
