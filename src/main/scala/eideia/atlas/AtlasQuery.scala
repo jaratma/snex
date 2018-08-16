@@ -68,7 +68,44 @@ object AtlasQuery {
             case Some(code) => code
             case _ => region
         }
+    }
 
+    def getCountryCodeFromTriplet(triplet: LocationTriplet) : String = {
+        def check(country: String) : String = country match {
+            case  "USA" => "Estados Unidos"
+            case "Gran Bretaña" => "Reino Unido"
+            case s: String  => s
+        }
+        val country = triplet.country
+        val codesFromES : Map[String,String] = CountryResolver.mapLocalizedCountryTocode("ES")
+
+        codesFromES.getOrElse(check(country),country)
+    }
+
+    def getCountryCode(country: String): String = {
+        def check(country: String) : String = country match {
+            case  "USA" => "Estados Unidos"
+            case "Gran Bretaña" => "Reino Unido"
+            case s: String  => s
+        }
+        val codesFromES : Map[String,String] = CountryResolver.mapLocalizedCountryTocode("ES")
+        codesFromES.getOrElse(check(country),country)
+    }
+
+    def getAdmin1Code(region: String): String = {
+        lazy val admins1 = TableQuery[Admin1Table]
+        val query = admins1.filter(r => r.name like region).map(_.regionCode)
+        exec(query.result.headOption) match {
+            case Some(code) => code
+            case _ => region
+        }
+    }
+
+    def getLocationFromLegacyTriplet(tpl: LocationTriplet): Option[Location] = {
+        //println(s"${tpl.city} ${tpl.country} ${tpl.region}")
+        val query = messages.filter(r => (r.name like tpl.city)  && r.country === tpl.country && r.admin1 === tpl.region)
+
+        exec(query.result.headOption)
     }
 }
 

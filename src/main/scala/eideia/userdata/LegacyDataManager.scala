@@ -2,7 +2,10 @@ package eideia.userdata
 
 import eideia.models._
 import java.sql._
+
 import eideia.InitApp
+import eideia.atlas.AtlasQuery
+
 import scala.util.{Failure, Success, Try}
 import scala.collection.mutable.ArrayBuffer
 
@@ -67,6 +70,17 @@ object LegacyDataManager {
             val region = rs.getString("region")
             val country = rs.getString("country")
             arybuf += LocationTriplet(city,region,country)
+        }
+        arybuf
+    }
+
+    def encodedTriplets(table: String): Seq[LocationTriplet] = {
+        val legacyTriplets = getLegacyLocationTriplets(table)
+        val arybuf = ArrayBuffer[LocationTriplet]()
+        legacyTriplets.foreach { t =>
+            val regionCode = AtlasQuery.getAdmin1Code(t.region)
+            val countryCode = AtlasQuery.getCountryCode(t.country)
+            arybuf += LocationTriplet(t.city,regionCode,countryCode)
         }
         arybuf
     }

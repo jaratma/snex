@@ -1,5 +1,6 @@
 package eideia.atlas
 
+import eideia.models.Location
 import org.scalatest.{FunSuite, Matchers}
 import eideia.userdata.{LegacyDataManager, LocationTriplet}
 
@@ -12,12 +13,49 @@ class AtlasQueryTest extends FunSuite  with  Matchers{
         assert(res.size == 100)
     }
 
-    test("find region code fro legacy name") {
+    test("find region code from legacy name") {
         val triplets = LegacyDataManager.getLegacyLocationTriplets("personal")
         val arybuf = ArrayBuffer[String]()
         triplets.foreach { t => arybuf += AtlasQuery.getAdmin1CodeFromTriplet(t) }
         assert(triplets.size == arybuf.size)
         arybuf.foreach(println(_))
+    }
+
+    test("get country code from legacy name") {
+        val triplets = LegacyDataManager.getLegacyLocationTriplets("api")
+        val arybuf = ArrayBuffer[String]()
+        triplets.foreach( { t => arybuf += AtlasQuery.getCountryCodeFromTriplet(t)})
+        assert(triplets.size == arybuf.size)
+        arybuf.foreach(println(_))
+    }
+
+    test("encode triplets") {
+        val triplets = LegacyDataManager.getLegacyLocationTriplets("api")
+        val arybuf = ArrayBuffer[LocationTriplet]()
+        triplets.foreach { t =>
+            val regionCode = AtlasQuery.getAdmin1Code(t.region)
+            val countryCode = AtlasQuery.getCountryCode(t.country)
+            arybuf += LocationTriplet(t.city,regionCode,countryCode)
+        }
+        assert(triplets.size == arybuf.size)
+    }
+
+    test("get encoded triplets") {
+        val triplets = LegacyDataManager.encodedTriplets("personal")
+        val successBuf = ArrayBuffer[Option[Location]]()
+        var failBuf = 0
+        triplets.foreach{ t =>
+            val opLoc: Option[Location] = AtlasQuery.getLocationFromLegacyTriplet(t)
+            opLoc match {
+                case Some(loc) => successBuf += opLoc
+                case None =>
+                    println(s"${t.city} ${t.country} ${t.region}")
+                    failBuf += 1
+            }
+
+
+        }
+        assert(successBuf.flatten.size + failBuf == triplets.size)
     }
 
 }

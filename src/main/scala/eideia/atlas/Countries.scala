@@ -1,13 +1,9 @@
 package eideia.atlas
 
-import eideia.ConfigManager
-
-
 object CountryResolver {
     val langs = List("ES", "EN", "DE", "CA")
 
-    def mapLocalizedCountryTocode: Map[String,String] = {
-        val lang = ConfigManager.getDefaulConfig.lang
+    def mapLocalizedCountryTocode(lang: String = "ES" ): Map[String,String] = {
         assert(langs.contains(lang))
         for ( (k,v) <- codeMap ) yield v(langs.indexOf(lang)) -> k
     }
@@ -105,7 +101,7 @@ object CountryResolver {
         "ID" -> List[String]("Indonesia","Indonesia","Indonesien","Indonèsia"),
         "IE" -> List[String]("Irlanda","Ireland","Irland","Irlanda"),
         "IL" -> List[String]("Israel","Israel","Israel","Israel"),
-        "IN" -> List[String]("India (la)","India","Indien","Índia"),
+        "IN" -> List[String]("India","India","Indien","Índia"),
         "IQ" -> List[String]("Iraq","Iraq","Irak","Iraq"),
         "IR" -> List[String]("Irán","Iran","Iran","Iran"),
         "IS" -> List[String]("Islandia","Iceland","Island","Islàndia"),
