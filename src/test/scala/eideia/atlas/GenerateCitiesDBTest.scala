@@ -49,7 +49,4 @@ class GenerateCitiesDBTest extends FunSuite with Matchers {
         val res: Boolean = GenerateCitiesDB.doesTableExists("cities")
         assert(res)
     }
-
-
-
 }

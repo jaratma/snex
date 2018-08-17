@@ -3,17 +3,18 @@ package eideia.userdata
 import eideia.models._
 import java.sql._
 
-import eideia.InitApp
+import eideia.{InitApp, userdata}
 import eideia.atlas.AtlasQuery
 
 import scala.util.{Failure, Success, Try}
 import scala.collection.mutable.ArrayBuffer
 
 case class LocationTriplet(city: String, region: String, country: String)
+case class LegacyEssentialFields(first: String, last: String, date: String, zone: String, city: String, country: String)
 
 object LegacyDataManager {
     val driverClassName ="org.sqlite.JDBC"
-    val url: String = s"jdbc:sqlite:${InitApp.userHome}/tmp/charts/charts.db"
+    val url: String = s"jdbc:sqlite:${InitApp.userHome}/tmp/charts/charts.db" //TODO : change for real db
     Class.forName(driverClassName)
 
     def getStatement: Try[Statement] = {
@@ -46,17 +47,35 @@ object LegacyDataManager {
         arybuf
     }
 
-    def getListOfCountries(table: String): Seq[String] = {
+    def getListOfAStringField(field: String, table: String) : Seq[String] = {
+        assert(List("first","last","date","city","region","country","zone").contains(field))
         val arybuf = ArrayBuffer[String]()
         val stmt: Try[Statement] = getStatement
         assert(stmt.isSuccess)
-        val sql = s"select country from $table"
+        val sql = s"select $field from $table"
         val rs: ResultSet = stmt.get.executeQuery(sql)
         while (rs.next) {
-            arybuf += rs.getString("country")
+            arybuf += rs.getString(s"$field")
         }
         arybuf
+    }
 
+    def getListOfCountries(table: String): Seq[String] = {
+        getListOfAStringField("country", table)
+    }
+
+    def getListOfDates(table: String): Seq[String] = {
+        getListOfAStringField("date", table)
+    }
+
+    def getListOfZones(table: String): Seq[String] = {
+        getListOfAStringField("zone", table)
+    }
+
+    def getFirstPairDateZone(table: String): (String,String) = {
+        val dt = getListOfDates(table).head
+        val zn = getListOfZones(table).head
+        (dt,zn)
     }
 
     def getLegacyLocationTriplets(table: String): Seq[LocationTriplet] = {
@@ -84,6 +103,31 @@ object LegacyDataManager {
         }
         arybuf
     }
+
+    def getLocationsFromAtlas(table: String): Seq[Location] = {
+        val triplets = encodedTriplets(table)
+         (for {t <- triplets} yield AtlasQuery.getLocationFromLegacyDoublet(t)).flatten
+    }
+
+    def getEssentialFieldsFromLegacyData(table: String) : Seq[LegacyEssentialFields] = {
+        val arybuf = ArrayBuffer[LegacyEssentialFields]()
+        val stmt: Try[Statement] = getStatement
+        assert(stmt.isSuccess)
+        val sql = s"select first, last, date, city, region, country, zone from $table"
+        val rs: ResultSet = stmt.get.executeQuery(sql)
+        while (rs.next) {
+            val first = rs.getString("first")
+            val last = rs.getString("last")
+            val date = rs.getString("date")
+            val city = rs.getString("city")
+            val country = rs.getString("country")
+            val zone = rs.getString("zone")
+            arybuf += LegacyEssentialFields(first, last, date, zone, city, country)
+        }
+        arybuf
+    }
+
+
 
     def convertTableChartsToCaseClass(table: String): Seq[LegacyData] = {
         val arybuf = ArrayBuffer[LegacyData]()

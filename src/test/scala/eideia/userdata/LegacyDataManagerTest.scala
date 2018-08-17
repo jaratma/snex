@@ -9,13 +9,13 @@ class LegacyDataManagerTest extends FunSuite with Matchers {
         assert(InitApp.existsLegacyDir)
         val tables = LegacyDataManager.getTableNamesFromDb
         assert(tables.nonEmpty)
-        tables.foreach(println(_))
+        //tables.foreach(println(_))
     }
 
     test("charts in table personal") {
         val names = LegacyDataManager.getChartsFromTable("personal")
         assert(names.nonEmpty)
-        names.foreach(println(_))
+        //names.foreach(println(_))
     }
 
     test("convert rows to case class") {
@@ -28,13 +28,14 @@ class LegacyDataManagerTest extends FunSuite with Matchers {
     test("select countries in charts") {
         val countries: Seq[String] = LegacyDataManager.getListOfCountries("personal")
         assert(countries.isInstanceOf[Seq[String]])
-        countries.toSet[String].foreach(s => println(s))
+        //countries.toSet[String].foreach(s => println(s))
     }
 
     test("get location triplets") {
         val triplets : Seq[LocationTriplet] = LegacyDataManager.getLegacyLocationTriplets("personal")
         assert(triplets.isInstanceOf[Seq[LocationTriplet]])
-        println(triplets.size)
+        //println(triplets.size)
     }
 
+    //ignore("convert legacy case class to ") = ???
 }

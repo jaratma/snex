@@ -15,6 +15,7 @@ case class NexConf(lang: String, locality: String, country: String, region: Stri
 
 object ConfigManager {
     def resourceFromName(name: String): Path = {
+        println("from config: " + name)
         Paths.get(getClass.getResource(name).getPath)
     }
 
@@ -25,8 +26,8 @@ object ConfigManager {
     }
 
     def getUserConfig(path: String): NexConf = {
-        val file : Path = resourceFromName(path)
-        val conf = loadConfig[NexConf](file)
+        //val file : Path = resourceFromName(path)
+        val conf = loadConfig[NexConf](Paths.get(path))
         conf.right.get
     }
 

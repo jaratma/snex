@@ -5,8 +5,8 @@ import slick.jdbc.SQLiteProfile.api._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
-import eideia.models.{Location, Admin1, Admin2}
-import eideia.userdata.{LegacyDataManager, LocationTriplet}
+import eideia.models.{Admin1, Admin2, Location}
+import eideia.userdata.{LegacyDataManager, LegacyEssentialFields, LocationTriplet}
 
 object AtlasQuery {
 
@@ -102,10 +102,15 @@ object AtlasQuery {
     }
 
     def getLocationFromLegacyTriplet(tpl: LocationTriplet): Option[Location] = {
-        //println(s"${tpl.city} ${tpl.country} ${tpl.region}")
         val query = messages.filter(r => (r.name like tpl.city)  && r.country === tpl.country && r.admin1 === tpl.region)
-
         exec(query.result.headOption)
     }
+
+    def getLocationFromLegacyDoublet(tpl: LocationTriplet): Option[Location] = {
+        val query = messages.filter(r => (r.name like tpl.city)  && r.country === tpl.country)
+        exec(query.result.headOption)
+    }
+
+    def getLocationFromLegacyData(legacy: LegacyEssentialFields): Location = ???
 }
 

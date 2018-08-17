@@ -18,7 +18,7 @@ class AtlasQueryTest extends FunSuite  with  Matchers{
         val arybuf = ArrayBuffer[String]()
         triplets.foreach { t => arybuf += AtlasQuery.getAdmin1CodeFromTriplet(t) }
         assert(triplets.size == arybuf.size)
-        arybuf.foreach(println(_))
+        //arybuf.foreach(println(_))
     }
 
     test("get country code from legacy name") {
@@ -26,7 +26,7 @@ class AtlasQueryTest extends FunSuite  with  Matchers{
         val arybuf = ArrayBuffer[String]()
         triplets.foreach( { t => arybuf += AtlasQuery.getCountryCodeFromTriplet(t)})
         assert(triplets.size == arybuf.size)
-        arybuf.foreach(println(_))
+        //arybuf.foreach(println(_))
     }
 
     test("encode triplets") {
@@ -40,7 +40,7 @@ class AtlasQueryTest extends FunSuite  with  Matchers{
         assert(triplets.size == arybuf.size)
     }
 
-    test("get encoded triplets") {
+    test("get encoded triplets(city-country+region)") {
         val triplets = LegacyDataManager.encodedTriplets("personal")
         val successBuf = ArrayBuffer[Option[Location]]()
         var failBuf = 0
@@ -49,13 +49,28 @@ class AtlasQueryTest extends FunSuite  with  Matchers{
             opLoc match {
                 case Some(loc) => successBuf += opLoc
                 case None =>
-                    println(s"${t.city} ${t.country} ${t.region}")
+                    //println(s"${t.city} ${t.country} ${t.region}")
                     failBuf += 1
             }
-
-
         }
         assert(successBuf.flatten.size + failBuf == triplets.size)
+        println(s"Failed triplets: $failBuf")
     }
 
+    test("get encoded doublets (city+country)") {
+        val triplets = LegacyDataManager.encodedTriplets("api")
+        val successBuf = ArrayBuffer[Option[Location]]()
+        var failBuf = 0
+        triplets.foreach{ t =>
+            val opLoc: Option[Location] = AtlasQuery.getLocationFromLegacyDoublet(t)
+            opLoc match {
+                case Some(loc) => successBuf += opLoc
+                case None =>
+                    //println(s"${t.city} ${t.country} ${t.region}")
+                    failBuf += 1
+            }
+        }
+        assert(successBuf.flatten.size + failBuf == triplets.size)
+        println(s"Failed triplets: $failBuf")
+    }
 }

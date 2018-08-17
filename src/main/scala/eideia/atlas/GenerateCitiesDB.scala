@@ -27,8 +27,8 @@ object GenerateCitiesDB {
         val cities = readCities
         cities.foreach{ line =>
             val rec = for { (field,ix) <- line.split("\t").zipWithIndex if validFields.contains(ix) } yield field
-          val loc = Location(rec(0), rec(1).toDouble,rec(2).toDouble,rec(3),rec(4),rec(5),rec(6).toDouble,rec(7))
-         aryBuf += loc
+            val loc = Location(rec(0), rec(1).toDouble,rec(2).toDouble,rec(3),rec(4),rec(5),rec(6).toDouble,rec(7))
+            aryBuf += loc
         }
         aryBuf
     }
@@ -51,7 +51,6 @@ object GenerateCitiesDB {
         val db = Database.forURL("jdbc:sqlite::resource:cities.db", driver = "org.sqlite.JDBC")
         lazy val locations = TableQuery[LocationTable]
         val rows = Await.result(db.run(sqlu"DELETE FROM cities"), 5 seconds)
-        //db.close()
         rows
     }
 
@@ -68,8 +67,6 @@ object GenerateCitiesDB {
         println(loc.size)
         val db = Database.forConfig("cities")
         lazy val locations = TableQuery[LocationTable]
-        //val schema = locations.schema.create
-        //Await.result(db.run(DBIO.seq(schema)), 2.seconds)
         val rows: Option[Int] = Await.result(db.run(locations ++= loc), 10.seconds)
         println(s"Inserted ${rows.get} rows.")
         rows

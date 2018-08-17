@@ -17,24 +17,23 @@ object InitApp {
     val userConfFile = userConfPath + "/application.conf"
     val existUserConFile: Boolean = Files.exists(Paths.get(userConfFile))
 
-    def init(): Unit = {
-        userDir.mkdir
 
-        val config: NexConf = existUserConFile match {
-            case false => existsLegacyIniFile match {
-                case true =>
-                    val ini: Ini = new Ini(new File(userHome + "/.astronex/cfg.ini"))
-                    val legacyConf = ConfigManager.parseLegacyIniFile(ini)
-                    ConfigManager.saveNexConf(legacyConf, new File(userConfFile))
-                    legacyConf
-                case _ =>
-                    val conf: NexConf = ConfigManager.getDefaulConfig
-                    ConfigManager.saveNexConf(conf, new File(userConfFile))
-                    conf
-            }
+    userDir.mkdir
+
+    val config: NexConf = existUserConFile match {
+        case false => existsLegacyIniFile match {
+            case true =>
+                val ini: Ini = new Ini(new File(userHome + "/.astronex/cfg.ini"))
+                val legacyConf = ConfigManager.parseLegacyIniFile(ini)
+                ConfigManager.saveNexConf(legacyConf, new File(userConfFile))
+                legacyConf
             case _ =>
-                ConfigManager.getUserConfig(userConfFile)
+                val conf: NexConf = ConfigManager.getDefaulConfig
+                ConfigManager.saveNexConf(conf, new File(userConfFile))
+                conf
         }
+        case _ =>
+            ConfigManager.getUserConfig(userConfFile)
     }
 
 }
