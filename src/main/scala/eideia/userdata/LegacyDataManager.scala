@@ -122,12 +122,11 @@ object LegacyDataManager {
             val city = rs.getString("city")
             val country = rs.getString("country")
             val zone = rs.getString("zone")
-            arybuf += LegacyEssentialFields(first, last, date, zone, city, country)
+            val countryCode = AtlasQuery.getCountryCode(country)
+            arybuf += LegacyEssentialFields(first, last, date, zone, city, countryCode)
         }
         arybuf
     }
-
-
 
     def convertTableChartsToCaseClass(table: String): Seq[LegacyData] = {
         val arybuf = ArrayBuffer[LegacyData]()

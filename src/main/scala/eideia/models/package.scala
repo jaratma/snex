@@ -1,6 +1,13 @@
 package eideia.models
 
-case class EntityInfo(first:String, last:String, category: String, comment: String)
+case class UserData(first:String,
+                      last:String,
+                      tags: String,
+                      date: String,
+                      city: String,
+                      country: String,
+                      admin1: String,
+                      admin2: String)
 
 case class Location(
         name: String,

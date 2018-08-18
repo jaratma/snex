@@ -3,6 +3,7 @@ package eideia.atlas
 import eideia.models.Location
 import org.scalatest.{FunSuite, Matchers}
 import eideia.userdata.{LegacyDataManager, LocationTriplet}
+import scala.language.reflectiveCalls
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -57,6 +58,11 @@ class AtlasQueryTest extends FunSuite  with  Matchers{
         println(s"Failed triplets: $failBuf")
     }
 
+    val fixture = new {
+        val successBuf = ArrayBuffer[Option[Location]]()
+        var failBuf = 0
+    }
+
     test("get encoded doublets (city+country)") {
         val triplets = LegacyDataManager.encodedTriplets("api")
         val successBuf = ArrayBuffer[Option[Location]]()
@@ -72,5 +78,20 @@ class AtlasQueryTest extends FunSuite  with  Matchers{
         }
         assert(successBuf.flatten.size + failBuf == triplets.size)
         println(s"Failed triplets: $failBuf")
+    }
+
+    test("get locations from essential legacy data") {
+        val essentials = LegacyDataManager.getEssentialFieldsFromLegacyData("personal")
+        essentials.foreach { e =>
+            val opLoc: Option[Location] = AtlasQuery.getLocationFromLegacyData(e)
+            opLoc match {
+                case Some(loc) => fixture.successBuf += opLoc
+                case None =>
+                    //println(s"${e.city} ${e.country} ${e.zone}")
+                    fixture.failBuf += 1
+            }
+        }
+        assert(fixture.successBuf.flatten.size + fixture.failBuf == essentials.size)
+        println(s"Failed triplets: ${fixture.failBuf}")
     }
 }

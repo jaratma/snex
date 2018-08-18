@@ -24,5 +24,13 @@ object DateManager {
         LocalDateTime.of(y,m,d,h,mn,s)
     }
 
+    def zonedLocalDateTime(dt: LocalDateTime, zone: String) = ZonedDateTime.of(dt,ZoneId.of(zone))
+
+
     def parseDateString(date: String): ZonedDateTime = ZonedDateTime.parse(date)
+
+    def transformString(date: String, zone: String): String = {
+        val dt = localDateTimeFromLegacyStringDate(date)
+        zonedLocalDateTime(dt, zone).toString
+    }
 }

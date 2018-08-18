@@ -37,5 +37,8 @@ class LegacyDataManagerTest extends FunSuite with Matchers {
         //println(triplets.size)
     }
 
-    //ignore("convert legacy case class to ") = ???
+    test("get essential legacy case class") {
+        val essentialFields = LegacyDataManager.getEssentialFieldsFromLegacyData("personal")
+        assert(essentialFields.isInstanceOf[Seq[LegacyEssentialFields]])
+    }
 }
