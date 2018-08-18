@@ -77,7 +77,7 @@ object AtlasQuery {
             case s: String  => s
         }
         val country = triplet.country
-        val codesFromES : Map[String,String] = CountryResolver.mapLocalizedCountryTocode("ES")
+        val codesFromES : Map[String,String] = CountryResolver.mapLocalizedCountryTocode()
 
         codesFromES.getOrElse(check(country),country)
     }
@@ -88,7 +88,7 @@ object AtlasQuery {
             case "Gran Bretaña" => "Reino Unido"
             case s: String  => s
         }
-        val codesFromES : Map[String,String] = CountryResolver.mapLocalizedCountryTocode("ES")
+        val codesFromES : Map[String,String] = CountryResolver.mapLocalizedCountryTocode()
         codesFromES.getOrElse(check(country),country)
     }
 

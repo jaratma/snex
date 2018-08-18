@@ -18,12 +18,11 @@ class LegacyDataManagerTest extends FunSuite with Matchers {
         //names.foreach(println(_))
     }
 
-    test("convert rows to case class") {
-        val charts: Seq[LegacyData] = LegacyDataManager.convertTableChartsToCaseClass("personal")
-        assert(charts.isInstanceOf[Seq[LegacyData]])
-        println(charts.head)
-
-    }
+//    ignore("convert rows to case class") {
+//        val charts: Seq[LegacyData] = LegacyDataManager.convertTableChartsToCaseClass("personal")
+//        assert(charts.isInstanceOf[Seq[LegacyData]])
+//        println(charts.head)
+//    }
 
     test("select countries in charts") {
         val countries: Seq[String] = LegacyDataManager.getListOfCountries("personal")

@@ -7,4 +7,5 @@ object SnexApp extends App{
     println(InitApp.userConfPath)
     println(InitApp.userConfFile)
     println(config.lang)
+    println(InitApp.defaultLocation.name)
 }

@@ -3,6 +3,10 @@ package eideia
 import scala.util.Properties
 import java.nio.file.{Files, Paths}
 import java.io.File
+
+import eideia.atlas.AtlasQuery
+import eideia.models.Location
+import eideia.userdata.LocationTriplet
 import org.ini4j.Ini
 
 object InitApp {
@@ -35,5 +39,8 @@ object InitApp {
         case _ =>
             ConfigManager.getUserConfig(userConfFile)
     }
+
+    val defaultLocation: Location =
+        AtlasQuery.getLocationFromLegacyTriplet(LocationTriplet(config.locality,config.region, config.country)).get
 
 }
