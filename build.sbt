@@ -16,6 +16,8 @@ scalacOptions ++= Seq(
     "-Xfatal-warnings"
 )
 
+fork in run := true
+
 libraryDependencies ++= Seq(
     "org.scalatest" %% "scalatest" % "3.2.0-SNAP10" % Test,
     "org.scalacheck" %% "scalacheck" % "1.14.0" % "test",
@@ -24,11 +26,19 @@ libraryDependencies ++= Seq(
     "org.xerial"          % "sqlite-jdbc"     % "3.21.0",
     "com.github.pureconfig" %% "pureconfig" % "0.9.1",
     "org.ini4j" % "ini4j" % "0.5.4",
+    "com.softwaremill.sttp" %% "core" % "1.3.0",
+    "org.scala-lang.modules" %% "scala-xml" % "1.1.0",
     "ch.qos.logback"      % "logback-classic" % "1.2.3"
 )
 
-unmanagedResourceDirectories in Compile += baseDirectory.value / "lib_extra"
-unmanagedResourceDirectories in Test += baseDirectory.value / "lib_extra"
+unmanagedResourceDirectories in Compile += baseDirectory.value / "lib_extra/darwin"
+unmanagedResourceDirectories in Test += baseDirectory.value / "lib_extra/darwin"
+includeFilter in (Compile, unmanagedResourceDirectories):= ".dylib,.dll,.so"
+
+//mappings in (Compile, packageBin) += {
+//    (baseDirectory.value / "lib_extra" / "darwin" / "libswe.dylib") -> "darwin/libswe.dylib"
+//}
+
 
 assemblyMergeStrategy in assembly := {
     case PathList("META-INF", xs @ _*) => MergeStrategy.discard

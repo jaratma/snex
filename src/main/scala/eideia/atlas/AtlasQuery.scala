@@ -1,14 +1,17 @@
 package eideia.atlas
 
 import java.util.concurrent.ForkJoinPool
+
+import eideia.DateManager
 import slick.jdbc.SQLiteProfile.api._
+
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
-import eideia.models.{Admin1, Admin2, Location}
+import eideia.models.{Admin1, Admin2, Location, UserData}
 import eideia.userdata.{LegacyEssentialFields, LocationTriplet}
 
 object AtlasQuery {
-    implicit val executor =  ExecutionContext.fromExecutor(new ForkJoinPool(4))
+    implicit val executor =  ExecutionContext.fromExecutor(new ForkJoinPool(2))
 
     final class LocationTable(tag: Tag)
         extends Table[Location](tag,"cities") {
@@ -114,6 +117,14 @@ object AtlasQuery {
     def getLocationFromLegacyData(legacy: LegacyEssentialFields): Option[Location] = {
         //LegacyEssentialFields(first, last, date, zone, city, country)
         val (zone,city,country) = legacy match { case LegacyEssentialFields(_, _, _, zone, city, country) => (zone,city,country) }
+        val query = messages.filter(r => (r.name like city)  && r.country === country && r.timezone ===  zone)
+        exec(query.result.headOption)
+    }
+
+    def getLocationFromUserData(userdata: UserData): Option[Location] = {
+        //UserData(first, last, tags, date, city, country, admin1, admin2, id)
+        val (date,city,country) = userdata match { case UserData(_, _, _, date,city,country,_,_,_) => (date,city,country) }
+        val zone = DateManager.parseDateString(date).getZone.toString
         val query = messages.filter(r => (r.name like city)  && r.country === country && r.timezone ===  zone)
         exec(query.result.headOption)
     }

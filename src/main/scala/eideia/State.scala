@@ -1,0 +1,5 @@
+package eideia
+
+object State {
+
+}

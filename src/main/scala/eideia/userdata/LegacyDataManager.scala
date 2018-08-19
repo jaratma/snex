@@ -127,53 +127,6 @@ object LegacyDataManager {
         }
         arybuf
     }
-
-//    def convertTableChartsToCaseClass(table: String): Seq[LegacyData] = {
-//        val arybuf = ArrayBuffer[LegacyData]()
-//        val stmt = getStatement
-//        assert(stmt.isSuccess)
-//        val rs  = stmt.map(s => s.executeQuery(s"select * from $table")).get
-//        while (rs.next) {
-//            val first: String = rs.getString("first")
-//            val last: String = rs.getString("last")
-//            val category: String = rs.getString("category")
-//            val date: String = rs.getString("date")
-//            val city: String = rs.getString("city")
-//            val region: String = rs.getString("region")
-//            val country: String = rs.getString("country")
-//            val longitud: Double = rs.getDouble("longitud")
-//            val latitud: Double = rs.getDouble("latitud")
-//            val zone: String = rs.getString("zone")
-//            val sun: Double = rs.getDouble("sun")
-//            val moo: Double = rs.getDouble("moo")
-//            val mer: Double = rs.getDouble("mer")
-//            val ven: Double = rs.getDouble("ven")
-//            val mar: Double = rs.getDouble("mar")
-//            val jup: Double = rs.getDouble("jup")
-//            val sat: Double = rs.getDouble("sat")
-//            val ura: Double = rs.getDouble("ura")
-//            val nep: Double = rs.getDouble("nep")
-//            val plu: Double = rs.getDouble("plu")
-//            val nod: Double = rs.getDouble("nod")
-//            val h1: Double = rs.getDouble("h1")
-//            val h2: Double = rs.getDouble("h2")
-//            val h3: Double = rs.getDouble("h3")
-//            val h4: Double = rs.getDouble("h4")
-//            val h5: Double = rs.getDouble("h5")
-//            val h6: Double = rs.getDouble("h6")
-//            val h7: Double = rs.getDouble("h7")
-//            val h8: Double = rs.getDouble("h8")
-//            val h9: Double = rs.getDouble("h9")
-//            val h10: Double = rs.getDouble("h10")
-//            val h11: Double = rs.getDouble("h11")
-//            val h12: Double = rs.getDouble("h12")
-//            val comment: String = rs.getString("comment")
-//            arybuf += LegacyData(first, last, category, date, city, region, country, longitud, latitud, zone,
-//                sun, moo, mer, ven, mar, jup, sat, ura, nep, plu, nod,
-//                h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, h12, comment)
-//        }
-//        arybuf
-//    }
 }
 
 

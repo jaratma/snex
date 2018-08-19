@@ -6,6 +6,8 @@ object DateManager {
 
     def now(tz: String): ZonedDateTime = ZonedDateTime.now(ZoneId.of(tz))
 
+    def utcFromLocal(zdt: ZonedDateTime) : ZonedDateTime = zdt.withZoneSameInstant(ZoneId.of("UTC"))
+
     def utcFromLocalDatePlusTimePlusZone(date: LocalDate, time: LocalTime, zone: ZoneId): ZonedDateTime = {
         val ld = ZonedDateTime.of(date,time,zone)
         ld.withZoneSameInstant(ZoneId.of("UTC"))

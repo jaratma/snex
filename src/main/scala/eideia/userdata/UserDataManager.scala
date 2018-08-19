@@ -15,10 +15,8 @@ import slick.jdbc.meta.MTable
 
 import scala.languageFeature.existentials
 
-case class LocationNotFounException(smth:String)  extends Exception
-
 object UserDataManager {
-    implicit val executor =  ExecutionContext.fromExecutor(new ForkJoinPool(4))
+    implicit val executor =  ExecutionContext.fromExecutor(new ForkJoinPool(2))
     implicit lazy val existentials: existentials = language.existentials
 
     class UserBase(name: String) {
@@ -31,18 +29,17 @@ object UserDataManager {
                 def country = column[String]("country")
                 def admin1 = column[String]("admin1")
                 def admin2 = column[String]("admin2")
+                def id = column[Long]("rowid", O.PrimaryKey, O.AutoInc)
 
                 def * =
-                    (first, last, tags, date, city, country, admin1, admin2).mapTo[UserData]
+                    (first, last, tags, date, city, country, admin1, admin2,id).mapTo[UserData]
         }
     }
 
-    def queryForThisTable(tableName: String) = {
+    def queryForThisTable(tableName: String)  = {
         val base = new UserBase(s"$tableName")
         TableQuery[base.UserDataTable]
     }
-
-
 
     val url = s"jdbc:sqlite:$userConfPath/collection.db"
     val driver = "org.sqlite.JDBC"
@@ -87,6 +84,12 @@ object UserDataManager {
         val rows: Option[Int] = Await.result(db.run(messages ++= newUserData), Duration.Inf)
         println(s"Inserted ${rows.get} rows.")
         rows
+    }
+
+    def loadRegisterById(table: String, id: Long) : Option[UserData] = {
+        val messages = queryForThisTable(table)
+        val query = messages.filter(_.id === id)
+        exec(query.result.headOption)
     }
 }
 

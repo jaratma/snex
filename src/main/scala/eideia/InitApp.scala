@@ -3,13 +3,15 @@ package eideia
 import scala.util.Properties
 import java.nio.file.{Files, Paths}
 import java.io.File
+import java.time.ZonedDateTime
 
 import eideia.atlas.AtlasQuery
-import eideia.models.Location
-import eideia.userdata.LocationTriplet
+import eideia.models.{Chart, Location, UserData}
+import eideia.userdata.{LocationTriplet, UserDataManager}
 import org.ini4j.Ini
 
 object InitApp {
+    type ZDT = ZonedDateTime
     val userHome: String = Properties.userHome
     val appDir: String = Properties.userDir
     val existsLegacyDir: Boolean = Files.exists(Paths.get(userHome + "/.astronex"))
@@ -42,5 +44,20 @@ object InitApp {
 
     val defaultLocation: Location =
         AtlasQuery.getLocationFromLegacyTriplet(LocationTriplet(config.locality,config.region, config.country)).get
+
+    val defaultTimeZone: String = defaultLocation.timezone
+
+    def localnow: ZDT = DateManager.now(defaultTimeZone)
+    def utcnow: ZDT = DateManager.utcFromLocal(localnow)
+
+    def setNowChart: Chart = Chart(utcnow, defaultLocation.latitude, defaultLocation.longitude)
+
+    def setChartFromLoadData(table: String, id: Long): Chart = {
+        val userData: UserData = UserDataManager.loadRegisterById(table, id).get
+        val date: ZDT = DateManager.parseDateString(userData.date)
+        val location: Location = AtlasQuery.getLocationFromUserData(userData).get
+        val utc = DateManager.utcFromLocal(date)
+        Chart(utc,location.latitude, location.longitude)
+    }
 
 }
