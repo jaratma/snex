@@ -42,6 +42,8 @@ object InitApp {
             ConfigManager.getUserConfig(userConfFile)
     }
 
+    //AtlasQuery.initCustomDB
+
     val defaultLocation: Location =
         AtlasQuery.getLocationFromLegacyTriplet(LocationTriplet(config.locality,config.region, config.country)).get
 

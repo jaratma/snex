@@ -16,7 +16,8 @@ scalacOptions ++= Seq(
     "-Xfatal-warnings"
 )
 
-fork in run := true
+//fork in run := true
+parallelExecution := false
 
 libraryDependencies ++= Seq(
     "org.scalatest" %% "scalatest" % "3.2.0-SNAP10" % Test,
@@ -35,10 +36,16 @@ unmanagedResourceDirectories in Compile += baseDirectory.value / "lib_extra/darw
 unmanagedResourceDirectories in Test += baseDirectory.value / "lib_extra/darwin"
 includeFilter in (Compile, unmanagedResourceDirectories):= ".dylib,.dll,.so"
 
-//mappings in (Compile, packageBin) += {
-//    (baseDirectory.value / "lib_extra" / "darwin" / "libswe.dylib") -> "darwin/libswe.dylib"
-//}
+mappings in (Compile, packageBin) += {
+    (baseDirectory.value / "lib_extra" / "darwin" / "libswe.dylib") -> "darwin/libswe.dylib"
+}
 
+initialCommands in console :=
+    """
+      |import eideia._
+      |val chart = InitApp.setChartFromLoadData("personal",1)
+      |val points = swebind.EpheDriver.huberPoints(chart)
+    """.stripMargin
 
 assemblyMergeStrategy in assembly := {
     case PathList("META-INF", xs @ _*) => MergeStrategy.discard

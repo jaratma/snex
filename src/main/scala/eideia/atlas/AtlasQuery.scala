@@ -1,57 +1,42 @@
 package eideia.atlas
 
 import java.util.concurrent.ForkJoinPool
-
-import eideia.DateManager
+import slick.jdbc.meta.MTable
 import slick.jdbc.SQLiteProfile.api._
 
-import scala.concurrent.{Await, ExecutionContext}
+import eideia.DateManager
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
 import eideia.models.{Admin1, Admin2, Location, UserData}
 import eideia.userdata.{LegacyEssentialFields, LocationTriplet}
+import eideia.InitApp.{defaultLocation, userConfPath}
 
 object AtlasQuery {
     implicit val executor =  ExecutionContext.fromExecutor(new ForkJoinPool(2))
-
-    final class LocationTable(tag: Tag)
-        extends Table[Location](tag,"cities") {
-        def name = column[String]("name")
-        def latitude = column[Double]("latitude")
-        def longitude = column[Double]("longitude")
-        def country = column[String]("country")
-        def admin1 = column[String]("admin1")
-        def admin2 = column[String]("admin2")
-        def elevation = column[Double]("elevation")
-        def timezone = column[String]("timezone")
-        def id = column[Long]("rowid", O.PrimaryKey, O.AutoInc)
-
-        def * =
-            (name, latitude, longitude, country, admin1, admin2, elevation, timezone, id).mapTo[Location]
-    }
-
-    final class Admin1Table(tag: Tag) extends Table[Admin1](tag, "admin1") {
-        def country = column[String]("country")
-        def regionCode = column[String]("regionCode")
-        def name = column[String]("name")
-
-        def * = (country,regionCode,name).mapTo[Admin1]
-    }
-
-    final class Admin2Table(tag: Tag) extends Table[Admin2](tag, "admin2") {
-
-        def country = column[String]("country")
-        def region = column[String]("regionCode")
-        def subregion = column[String]("regionCode")
-        def name = column[String]("name")
-
-        def * = (country,region, subregion, name).mapTo[Admin2]
-    }
-
     lazy val messages = TableQuery[LocationTable]
+    val locDb = Database.forConfig("cities")
+    def exec[T](program: DBIO[T]): T = Await.result(locDb.run(program), 2 seconds)
+/*
+    Custom atlas db
+ */
+    val url = s"jdbc:sqlite:$userConfPath/customloc.db"
+    val driver = "org.sqlite.JDBC"
+    val customDb = Database.forURL(url, driver)
 
-    val db = Database.forConfig("cities")
+    def initCustomDB = {
+        val tables : Future[Vector[MTable]] = customDb.run(MTable.getTables)
+        val res = Await.result(tables,Duration.Inf)
+        if (!res.toList.map(_.name.name).contains("cities")) {
+            val queryCustom = TableQuery[LocationTable]
+            val schema = queryCustom.schema.create
+            Await.result(customDb.run(DBIO.seq(schema)), 2.seconds)
+        }
+    }
 
-    def exec[T](program: DBIO[T]): T = Await.result(db.run(program), 2 seconds)
+    def inserCustomLocaton(loc: Location): Int = {
+        val queryCustom = TableQuery[LocationTable]
+        Await.result(customDb.run(queryCustom += loc), 2.seconds)
+    }
 
     def queryTimezone(timezone: String) : Seq[AtlasQuery.LocationTable#TableElementType] = {
         val query = messages.filter(_.timezone === timezone)
@@ -86,13 +71,8 @@ object AtlasQuery {
     }
 
     def getCountryCode(country: String): String = {
-        def check(country: String) : String = country match {
-            case  "USA" => "Estados Unidos"
-            case "Gran Bretaña" => "Reino Unido"
-            case s: String  => s
-        }
         val codesFromES : Map[String,String] = CountryResolver.mapLocalizedCountryTocode()
-        codesFromES.getOrElse(check(country),country)
+        codesFromES.getOrElse(country,country)
     }
 
     def getAdmin1Code(region: String): String = {
@@ -108,6 +88,7 @@ object AtlasQuery {
         val query = messages.filter(r => (r.name like tpl.city)  && r.country === tpl.country && r.admin1 === tpl.region)
         exec(query.result.headOption)
     }
+
 
     def getLocationFromLegacyDoublet(tpl: LocationTriplet): Option[Location] = {
         val query = messages.filter(r => (r.name like tpl.city)  && r.country === tpl.country)
@@ -127,6 +108,44 @@ object AtlasQuery {
         val zone = DateManager.parseDateString(date).getZone.toString
         val query = messages.filter(r => (r.name like city)  && r.country === country && r.timezone ===  zone)
         exec(query.result.headOption)
+    }
+
+    // search location in both databases
+    def searchLocation(city: String): Seq[Location] = {
+        println("enter search")
+        val query = messages.filter(r => r.name like city)
+        Await.result(locDb.run(query.result), 5.seconds) ++ Await.result(customDb.run(query.result), 3.seconds)
+    }
+
+    class LocationTable(tag: Tag)
+        extends Table[Location](tag, "cities") {
+        def * =
+            (name, latitude, longitude, country, admin1, admin2, elevation, timezone, id).mapTo[Location]
+
+        def name = column[String]("name")
+        def latitude = column[Double]("latitude")
+        def longitude = column[Double]("longitude")
+        def country = column[String]("country")
+        def admin1 = column[String]("admin1")
+        def admin2 = column[String]("admin2")
+        def elevation = column[Double]("elevation")
+        def timezone = column[String]("timezone")
+        def id = column[Long]("rowid", O.PrimaryKey, O.AutoInc)
+    }
+
+    final class Admin1Table(tag: Tag) extends Table[Admin1](tag, "admin1") {
+        def * = (country,regionCode,name).mapTo[Admin1]
+        def country = column[String]("country")
+        def regionCode = column[String]("regionCode")
+        def name = column[String]("name")
+    }
+
+    final class Admin2Table(tag: Tag) extends Table[Admin2](tag, "admin2") {
+        def * = (country,region, subregion, name).mapTo[Admin2]
+        def country = column[String]("country")
+        def region = column[String]("regionCode")
+        def subregion = column[String]("regionCode")
+        def name = column[String]("name")
     }
 }
 

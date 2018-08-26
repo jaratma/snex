@@ -67,7 +67,14 @@ object GenerateCitiesDB {
         println(loc.size)
         val db = Database.forConfig("cities")
         lazy val locations = TableQuery[LocationTable]
-        val rows: Option[Int] = Await.result(db.run(locations ++= loc), 10.seconds)
+        if (!doesTableExists("cities")) {
+            val schema = locations.schema.create
+            Await.result(db.run(DBIO.seq(schema)), 2.seconds)
+        } else {
+            val rows = Await.result(db.run(sqlu"DELETE FROM cities"), Duration.Inf)
+        }
+        println("Inserting rows...")
+        val rows: Option[Int] = Await.result(db.run(locations ++= loc), Duration.Inf)
         println(s"Inserted ${rows.get} rows.")
         rows
     }
@@ -75,13 +82,16 @@ object GenerateCitiesDB {
     def insertAdmin1Codes: Option[Int] = {
         val ads1: Seq[Admin1] = getAdmin1Names
         val db = Database.forConfig("cities")
-        lazy val admins1 = TableQuery[Admin1Table]
+        val admins1 = TableQuery[Admin1Table]
         if (!doesTableExists("admin1")) {
+            println("Creating schema")
             val schema = admins1.schema.create
             Await.result(db.run(DBIO.seq(schema)), 2.seconds)
         } else {
+            println("Deleting rows...")
             val rows = Await.result(db.run(sqlu"DELETE FROM admin1"), Duration.Inf)
         }
+        println("Inserting rows")
         val rows: Option[Int] = Await.result(db.run(admins1 ++= ads1), Duration.Inf)
         println(s"Inserted ${rows.get} rows.")
         rows

@@ -11,6 +11,7 @@ trait Swebind extends Library {
     def swe_julday(y:Int,m:Int,d:Int,h:Double,flag:Int): Double
     def swe_calc_ut(jd: Double, pl: Int, flag: Long, xx:Array[Double], err: String): Int
     def swe_houses(jd: Double, lat: Double, lng: Double, hsys: Int, cusps: Array[Double], asmc: Array[Double]) :Int
+    def swe_houses_armc(armc: Double, lat: Double, eps: Double, hsys: Int, cusps: Array[Double], asmc: Array[Double]) :Int
 }
 
 object Swebind {

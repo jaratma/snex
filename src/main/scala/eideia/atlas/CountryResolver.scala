@@ -78,7 +78,7 @@ object CountryResolver {
         "FO" -> List[String]("Islas Feroe","Faeroe Islands","Färöer","Illes Fèroe"),
         "FR" -> List[String]("Francia","France","Frankreich","França"),
         "GA" -> List[String]("Gabón","Gabon","Gabun","Gabon"),
-        "GB" -> List[String]("Reino Unido","United Kingdom","Vereinigtes Königreich","Regne Unit"),
+        "GB" -> List[String]("Gran Bretaña","United Kingdom","Vereinigtes Königreich","Regne Unit"),
         "GD" -> List[String]("Granada","Grenada","Grenada","Grenada"),
         "GE" -> List[String]("Georgia","Georgia","Georgien","Geòrgia"),
         "GF" -> List[String]("Guayana Francesa","French Guiana","Französisch-Guayana","Guaiana Francesa"),

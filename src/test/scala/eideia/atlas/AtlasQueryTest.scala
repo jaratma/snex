@@ -1,10 +1,11 @@
 package eideia.atlas
 
+import eideia.InitApp
 import eideia.models.Location
 import org.scalatest.{FunSuite, Matchers}
 import eideia.userdata.{LegacyDataManager, LocationTriplet}
-import scala.language.reflectiveCalls
 
+import scala.language.reflectiveCalls
 import scala.collection.mutable.ArrayBuffer
 
 class AtlasQueryTest extends FunSuite  with  Matchers{
@@ -93,5 +94,12 @@ class AtlasQueryTest extends FunSuite  with  Matchers{
         }
         assert(fixture.successBuf.flatten.size + fixture.failBuf == essentials.size)
         println(s"Failed triplets: ${fixture.failBuf}")
+    }
+
+    test("search location in both datatabses") {
+        val i = InitApp
+        val locs = AtlasQuery.searchLocation("Gurtnellen")
+        assert(locs.size == 1)
+        println(locs.head.name)
     }
 }

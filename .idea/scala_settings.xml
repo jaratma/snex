@@ -6,6 +6,9 @@
         <entry key="xml" value="XML" />
       </map>
     </option>
-    <option name="scFileMode" value="Ammonite" />
+  </component>
+  <component name="WorksheetDefaultProjectSettings">
+    <option name="compilerProfileName" value="Default" />
+    <option name="moduleName" value="snex" />
   </component>
 </project>

@@ -11,7 +11,7 @@ import pureconfig._
 
 
 
-case class NexConf(lang: String, locality: String, country: String, region: String, database: String)
+case class NexConf(lang: String, locality: String, country: String, region: String, database: String, housesystem: String)
 
 object ConfigManager {
     def resourceFromName(name: String): Path = {
@@ -39,7 +39,8 @@ object ConfigManager {
         val loc = defaultSection.get("locality")
         val reg = defaultSection.get("region")
         val db = defaultSection.get("database")
-        NexConf(lang, loc, country, reg, db)
+        val hs = "K"
+        NexConf(lang, loc, country, reg, db, hs)
     }
 
     def saveNexConf(iniconf: NexConf, path: File): Unit = {

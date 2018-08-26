@@ -1,6 +1,8 @@
 package eideia
 
 import eideia.swebind.EpheDriver
+import eideia.atlas.{AtlasQuery, GenerateCitiesDB, QueryGeonames => QG}
+import eideia.calc.Huber
 
 object SnexApp extends App{
 
@@ -13,10 +15,28 @@ object SnexApp extends App{
         }
     }
 
-    //val chart = InitApp.setNowChart
-    val chart = InitApp.setChartFromLoadData("personal", 1)
-    val bodies = EpheDriver.calcHuberPoints(chart)
-    displayBodies(bodies)
+    def displayChart = {
+        //val chart = InitApp.setNowChart
+        val chart = InitApp.setChartFromLoadData("personal", 1)
+        val driver = new Huber(chart)
+        val planets = driver.planets
+        planets.foreach(println)
+        val houses = driver.houses
+        houses.foreach (println )
+        println(driver.vertex)
+        //val causalPos = driver.causalPlanets
+        //println("Causal:")
+        //causalPos.foreach(println)
+    }
 
+    def displaySearchLocation(place: String, country: String) = {
+        val locs =  QG.parseQuery(QG.sendQuery(place,country))
+        println(locs(0))
+    }
+    //displaySearchLocation("Gurtnellen", "CH")
+
+    //val locs = AtlasQuery.searchLocation("Gurtnellen")
+    //println(locs.head.name)
+    displayChart
 
 }

@@ -6,7 +6,7 @@ import eideia.{DateManager => DM}
 import slick.jdbc.SQLiteProfile.api._
 
 import scala.concurrent.{Await, ExecutionContext, Future}
-import eideia.models.{Location, UserData}
+import eideia.models.{UserData}
 
 import scala.concurrent.duration._
 import eideia.InitApp.{defaultLocation, userConfPath}
