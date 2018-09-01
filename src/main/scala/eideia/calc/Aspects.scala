@@ -1,7 +1,7 @@
 package eideia.calc
 
 import eideia.models.{Chart, PlanetData}
-import eideia.swebind.EpheDriver
+import eideia.ephe.EpheDriver
 
 class Aspects(val ch: Chart) {
 

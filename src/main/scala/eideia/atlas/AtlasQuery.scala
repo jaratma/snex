@@ -1,18 +1,20 @@
 package eideia.atlas
 
 import java.util.concurrent.ForkJoinPool
+
 import slick.jdbc.meta.MTable
 import slick.jdbc.SQLiteProfile.api._
+import eideia.{DateManager, State}
 
-import eideia.DateManager
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
 import eideia.models.{Admin1, Admin2, Location, UserData}
 import eideia.userdata.{LegacyEssentialFields, LocationTriplet}
-import eideia.InitApp.{defaultLocation, userConfPath}
+import eideia.InitApp. userConfPath
 
 object AtlasQuery {
     implicit val executor =  ExecutionContext.fromExecutor(new ForkJoinPool(2))
+    def defaultLocation(implicit state: State) : Location = state.defaultLocation
     lazy val messages = TableQuery[LocationTable]
     val locDb = Database.forConfig("cities")
     def exec[T](program: DBIO[T]): T = Await.result(locDb.run(program), 2 seconds)
@@ -33,7 +35,7 @@ object AtlasQuery {
         }
     }
 
-    def inserCustomLocaton(loc: Location): Int = {
+    def inserCustomLocation(loc: Location): Int = {
         val queryCustom = TableQuery[LocationTable]
         Await.result(customDb.run(queryCustom += loc), 2.seconds)
     }

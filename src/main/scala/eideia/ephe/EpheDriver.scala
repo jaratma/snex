@@ -1,4 +1,4 @@
-package eideia.swebind
+package eideia.ephe
 
 import java.time.ZonedDateTime
 
@@ -11,6 +11,7 @@ object EpheDriver {
 
     val swe = Swebind.run()
     swe.swe_set_ephe_path("")
+
     val GREGFLAG: Int = 1
     val SEFLG_SPEED = 256L
     val SEFLG_EQUATORIAL = 2048L
@@ -26,6 +27,15 @@ object EpheDriver {
         val d: Int = date.getDayOfMonth
         val h: Double = date.getHour + date.getMinute/60.0
         swe.swe_julday(y,m,d,h,GREGFLAG)
+    }
+
+    def siderealTime(julDay: Double): Double = swe.swe_sidtime(julDay)
+
+    def calcEps(jd: Double): Double = {
+        val err  = new String(new Array[Char](256))
+        val xx  = new Array[Double](6)
+        swe.swe_calc_ut(jd, SE_ECL_NUT, SEFLG_SPEED, xx, err)
+        xx(0)
     }
 
     def calcAllPoints(ch: Chart) : ArrayBuffer[PlanetData] = {
@@ -67,28 +77,25 @@ object EpheDriver {
 
     def vulcan(ch: Chart): PlanetData = calcAllPoints(ch).filter(p => p.ref == 55).head
 
-    def calcHouses(ch: Chart): Seq[Double] = {
+    def calcHousesAndAxis(ch: Chart): Seq[Double] = {
         val jd = julDay(ch.date)
         val cusps  = new Array[Double](13)
         val ascmc  = new Array[Double](10)
 
         val res = swe.swe_houses(jd, ch.lat, ch.lng, HOUSESYSTEM, cusps, ascmc)
-        cusps.drop(1) :+ ascmc(3)
+        cusps.drop(1) ++ ascmc
     }
 
-    def calcLocalityHouses(ch: Chart): Seq[Double] = {
+    def calcLocalityHouses(ch: Chart): Seq[Double] = calcHousesARMC(ch, armc = (ch.lng + 360) % 360)
+
+    def calcHousesARMC(ch: Chart, armc: Double): Seq[Double] = {
         val jd = julDay(ch.date)
-        val armc = (ch.lng + 360) % 360
         val lat = ch.lat
         val cusps  = new Array[Double](13)
         val ascmc  = new Array[Double](10)
-        val err  = new String(new Array[Char](256))
-        val xx  = new Array[Double](6)
-
-        swe.swe_calc_ut(jd, SE_ECL_NUT, SEFLG_SPEED, xx, err)
-        val eps = xx(0)
-
+        val eps = calcEps(jd)
         swe.swe_houses_armc(armc, lat, eps, HOUSESYSTEM, cusps, ascmc)
         cusps.drop(1)
     }
+
 }

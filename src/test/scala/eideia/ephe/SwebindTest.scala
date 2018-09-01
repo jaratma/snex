@@ -1,4 +1,4 @@
-package eideia.swebind
+package eideia.ephe
 
 import org.scalatest.{FunSuite, Matchers}
 

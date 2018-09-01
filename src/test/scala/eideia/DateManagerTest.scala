@@ -4,6 +4,7 @@ import org.scalatest.{FunSuite, Matchers}
 import java.time._
 
 import eideia.userdata.LegacyDataManager
+import eideia.models.NexConf
 
 
 class DateManagerTest extends FunSuite with Matchers {

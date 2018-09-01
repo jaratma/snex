@@ -4,14 +4,11 @@ import java.io.{File,FileOutputStream}
 import java.nio.file.{Path, Paths}
 import org.ini4j.Ini
 import org.ini4j.Profile.Section
-
-import eideia.atlas.CountryResolver
 import pureconfig._
 
+import eideia.atlas.CountryResolver
+import eideia.models.NexConf
 
-
-
-case class NexConf(lang: String, locality: String, country: String, region: String, database: String, housesystem: String)
 
 object ConfigManager {
     def resourceFromName(name: String): Path = {

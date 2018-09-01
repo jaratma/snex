@@ -1,10 +1,10 @@
 package eideia
 
-import eideia.swebind.EpheDriver
-import eideia.atlas.{AtlasQuery, GenerateCitiesDB, QueryGeonames => QG}
+import eideia.ephe.EpheDriver
+import eideia.atlas.{AtlasQuery, QueryGeonames => QG}
 import eideia.calc.Huber
 
-object SnexApp extends App{
+object SnexApp { //} extends App{
 
     val config = InitApp.config
 

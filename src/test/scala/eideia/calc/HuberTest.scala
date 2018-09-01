@@ -1,7 +1,7 @@
 package eideia.calc
 
 import eideia.InitApp
-import eideia.swebind.EpheDriver
+import eideia.ephe.EpheDriver
 import org.scalatest.{FunSuite, Matchers}
 
 class HuberTest extends FunSuite with Matchers {

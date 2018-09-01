@@ -16,7 +16,7 @@ scalacOptions ++= Seq(
     "-Xfatal-warnings"
 )
 
-//fork in run := true
+fork in run := true
 parallelExecution := false
 
 libraryDependencies ++= Seq(
@@ -29,7 +29,8 @@ libraryDependencies ++= Seq(
     "org.ini4j" % "ini4j" % "0.5.4",
     "com.softwaremill.sttp" %% "core" % "1.3.0",
     "org.scala-lang.modules" %% "scala-xml" % "1.1.0",
-    "ch.qos.logback"      % "logback-classic" % "1.2.3"
+    "ch.qos.logback"      % "logback-classic" % "1.2.3",
+    "org.scalafx"   %% "scalafx"   % "8.0.144-R12"
 )
 
 unmanagedResourceDirectories in Compile += baseDirectory.value / "lib_extra/darwin"
@@ -44,7 +45,7 @@ initialCommands in console :=
     """
       |import eideia._
       |val chart = InitApp.setChartFromLoadData("personal",1)
-      |val points = swebind.EpheDriver.huberPoints(chart)
+      |val points = ephe.EpheDriver.huberPoints(chart)
     """.stripMargin
 
 assemblyMergeStrategy in assembly := {

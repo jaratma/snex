@@ -1,13 +1,17 @@
 package eideia.calc
 
 import eideia.models.{Chart, PlanetData}
-import eideia.swebind.EpheDriver
+import eideia.ephe.EpheDriver
 
 class Huber(val chart: Chart) extends Driver {
     val planets: Seq[PlanetData] = EpheDriver.huberPoints(chart)
-    val allPoints: Seq[Double] = EpheDriver.calcHouses(chart)
-    val houses: Seq[Double] = allPoints.init
-    val vertex: Double = allPoints.last
+    val allPoints: Seq[Double] = EpheDriver.calcHousesAndAxis(chart)
+    val houses: Seq[Double] = allPoints.take(12)
+    val axis = allPoints.drop(12)
+    val AC = axis(0)
+    val MC = axis(1)
+    val armc = axis(2)
+    val vertex = axis(3)
 
     def houseSizes: Seq[Double] =
         List(for((h1,h2) <- houses.take(6) zip houses.slice(1,7)) yield ((h2-h1) + 360) % 360).flatMap(l => l ++ l)

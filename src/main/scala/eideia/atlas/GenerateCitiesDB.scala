@@ -48,7 +48,8 @@ object GenerateCitiesDB {
     }
 
     def deleteAllRowsTable(tab: String) :Int = {
-        val db = Database.forURL("jdbc:sqlite::resource:cities.db", driver = "org.sqlite.JDBC")
+        val db = Database.forURL("jdbc:sqlite::resource:cities.db", driver = "org.sqlite.JDBC",
+            executor = AsyncExecutor("cities", numThreads=10, queueSize=1000))
         lazy val locations = TableQuery[LocationTable]
         val rows = Await.result(db.run(sqlu"DELETE FROM cities"), 5 seconds)
         rows

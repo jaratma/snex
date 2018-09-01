@@ -2,22 +2,24 @@ package eideia.userdata
 
 import java.util.concurrent.ForkJoinPool
 
-import eideia.{DateManager => DM}
+import eideia.{State, DateManager => DM}
 import slick.jdbc.SQLiteProfile.api._
 
 import scala.concurrent.{Await, ExecutionContext, Future}
-import eideia.models.{UserData}
+import eideia.models.UserData
 
 import scala.concurrent.duration._
-import eideia.InitApp.{defaultLocation, userConfPath}
+import eideia.InitApp.userConfPath
 import eideia.atlas.AtlasQuery
 import slick.jdbc.meta.MTable
+import eideia.InitApp.state
 
 import scala.languageFeature.existentials
 
 object UserDataManager {
-    implicit val executor =  ExecutionContext.fromExecutor(new ForkJoinPool(2))
+    implicit val executor =  ExecutionContext.fromExecutor(new ForkJoinPool(20))
     implicit lazy val existentials: existentials = language.existentials
+
 
     class UserBase(name: String) {
         class UserDataTable(tag: Tag) extends Table[UserData](tag, s"$name") {
@@ -44,10 +46,11 @@ object UserDataManager {
     val url = s"jdbc:sqlite:$userConfPath/collection.db"
     val driver = "org.sqlite.JDBC"
     val db = Database.forURL(url, driver)
+    //AsyncExecutor("user", numThreads=10, queueSize=1000)
 
     def exec[T](program: DBIO[T]): T = Await.result(db.run(program), 2 seconds)
 
-    def convertLegacyData(legacy: LegacyEssentialFields): UserData = {
+    def convertLegacyData(legacy: LegacyEssentialFields)(implicit state: State): UserData = {
         val first: String = legacy.first
         val last: String = legacy.last
         val date: String = legacy.date
@@ -59,7 +62,7 @@ object UserDataManager {
 
         val loc = AtlasQuery.getLocationFromLegacyData(legacy) match {
             case Some(location) => location
-            case _ => defaultLocation
+            case _ => state.defaultLocation
         }
         UserData(first,last,tags="",transformedDate, loc.name,loc.country,loc.admin1,loc.admin2)
     }
@@ -68,6 +71,12 @@ object UserDataManager {
         val tables : Future[Vector[MTable]] = db.run(MTable.getTables)
         val res = Await.result(tables,Duration.Inf)
         res.toList.map(_.name.name).contains(table)
+    }
+
+    def getTableNames: Seq[String] = {
+        val tables : Future[Vector[MTable]] = db.run(MTable.getTables)
+        val res = Await.result(tables,Duration.Inf)
+        res.toList.map(_.name.name)
     }
 
     def populateUserDataWithLegacy(table: String) = {
@@ -90,6 +99,20 @@ object UserDataManager {
         val messages = queryForThisTable(table)
         val query = messages.filter(_.id === id)
         exec(query.result.headOption)
+    }
+
+    def searchChartByName(name: String, table: String): Seq[UserData] = {
+        val messages = queryForThisTable(table)
+        val query = messages.filter(m  => (m.first like s"${name}%") || (m.last like s"${name}%")  )
+        exec(query.result)
+    }
+
+    def getDisplayRowsFromTable(table: String): Seq[(String, String, Long)] = {
+        val messages = queryForThisTable(table)
+        val query = messages.sortBy(_.last.asc).map {
+                r => (r.last, r.first, r.id)
+        }
+        exec(query.result)
     }
 }
 
