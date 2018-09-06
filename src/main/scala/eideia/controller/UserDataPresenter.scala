@@ -1,35 +1,54 @@
 package eideia.controller
 
 import scalafx.Includes._
-import scalafx.scene.control.{ChoiceBox, Skin, TableView}
+import scalafx.scene.control.{ChoiceBox, TableView, TextField}
 import eideia.{InitApp, State}
 import eideia.userdata.UserDataManager
 import scalafx.collections.ObservableBuffer
-import eideia.models.{NexConf, Person}
+import eideia.models.{NexConf, Person, Register}
+import scalafx.collections.transformation.FilteredBuffer
+import javafx.event.ActionEvent
 
-class UserDataPresenter(choice: ChoiceBox[String], explorer: TableView[Person])(implicit val state: State ) {
+class UserDataPresenter(choice: ChoiceBox[String],
+                        explorer: TableView[Person],
+                        searchField: TextField)(implicit val state: State ) {
 
     val config: NexConf = InitApp.config
     val rows: ObservableBuffer[Person] = rowsFromTable(config.database)
+
+
 
     choice.items = tableNames
 
     choice.value.onChange( (_,_,newval ) => {
         rows.clear()
         rows ++= rowsFromTable(newval)
-        explorer.items= rows
-        explorer.selectionModel().selectFirst()
+        explorer.items = new FilteredBuffer[Person](rows)
+        state.currentDatabase.value = newval
     })
 
     explorer.items = rows
     explorer.selectionModel().selectFirst()
     explorer.applyCss()
     explorer.selectionModel().selectedItemProperty().onChange( (_,_,nval) => {
-        val table = choice.selectionModel().selectedItemProperty().value
-        val chart = InitApp.setChartFromLoadData(table, nval.id)
-        state.currentChart.value = chart
-        println(state.currentChart)
+        if (nval != null) {
+            val table = choice.selectionModel().selectedItemProperty().value
+            state.currentRegister.value = Register(table, nval.id)
+        }
     })
+
+    def searchAction(ev: ActionEvent) = {
+        val text = searchField.text.value
+        if (!text.isEmpty) {
+            val table = choice.selectionModel().selectedItemProperty().value
+            explorer.items = new FilteredBuffer[Person](rows, (p: Person) => p.name.value.toLowerCase.contains(text.toLowerCase))
+        }
+    }
+
+    def clearAction(event: ActionEvent) = {
+        searchField.text.value = ""
+        explorer.items = rows
+    }
 
     def tableNames: ObservableBuffer[String] = {
         val names : Seq[String] = UserDataManager.getTableNames

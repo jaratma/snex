@@ -2,6 +2,7 @@ package eideia
 
 import java.time.ZonedDateTime
 
+import eideia.atlas.AtlasQuery
 import scalafx.beans.property.{ObjectProperty, StringProperty}
 
 package object models {
@@ -41,5 +42,14 @@ package object models {
     class Person(name_ : String, val id : Long) {
         val name = new StringProperty(this, "name", name_)
         override def toString: String = s"Person: ${name.value}, ${id}"
+    }
+
+    case class Register(table: String, rid: Long)
+
+    case class InfoLabels(userData: UserData) {
+        val firstNameLabel = new StringProperty(this, "fist-name-label", userData.first)
+        val lastNameLabel = new StringProperty(this, "last-name-label", userData.last)
+        private val location = AtlasQuery.getLocationFromUserData(userData).get
+        val geoLabel = new StringProperty(this, "geoLabel", Utils.formatGeoData(location))
     }
 }

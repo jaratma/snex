@@ -19,4 +19,11 @@ class UserDataManagerTest extends FunSuite with Matchers{
         println(userData.size)
     }
 
+    test("get all rows from all tables") {
+        val conf = InitApp.config
+        val allData: Seq[UserData] = UserDataManager.getAllRowsFromDB
+        assert(allData.isInstanceOf[Seq[UserData]])
+        println(allData.size)
+    }
+
 }

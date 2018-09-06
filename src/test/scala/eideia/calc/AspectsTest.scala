@@ -7,7 +7,8 @@ import org.scalatest.{FunSuite, Matchers}
 class AspectsTest extends FunSuite with Matchers{
     test("calc aspects for huber planets") {
         InitApp
-        val chart = InitApp.setChartFromLoadData("personal",1)
+        InitApp.state.setChartFromLoadData("personal",1)
+        val chart = InitApp.state.currentChart()
         val points = EpheDriver.huberPoints(chart)
         val driver = new Aspects(chart)
         val aspects = driver.calculateSimpleAspectsForHuber(points)

@@ -8,7 +8,8 @@ class DirectionsTest extends FunSuite with Matchers {
 
     test("secondary progressed planets") {
         implicit val now = InitApp.state.setNowChart
-        val stored: Chart = InitApp.setChartFromLoadData("personal",1)
+        InitApp.state.setChartFromLoadData("personal",1)
+        val stored = InitApp.state.currentChart()
         val points = Directions.secondaryProgressionPlanets(stored)
         assert(points.size == 11)
         println(points)
@@ -16,7 +17,8 @@ class DirectionsTest extends FunSuite with Matchers {
 
     test("secondary progressed houses") {
         implicit val now = InitApp.state.setNowChart
-        val stored: Chart = InitApp.setChartFromLoadData("personal",1)
+        InitApp.state.setChartFromLoadData("personal",1)
+        val stored = InitApp.state.currentChart()
         val houses = Directions.secondaryProgressionHouses(stored)
         assert(houses.size == 12)
         println(houses)
@@ -24,7 +26,8 @@ class DirectionsTest extends FunSuite with Matchers {
 
     test("tertiary progressed planets") {
         implicit val now = InitApp.state.setNowChart
-        val stored: Chart = InitApp.setChartFromLoadData("personal",1)
+        InitApp.state.setChartFromLoadData("personal",1)
+        val stored = InitApp.state.currentChart()
         val points = Directions.tertiaryProgressionPlanets(stored)
         assert(points.size == 11)
         println(points)
@@ -32,7 +35,8 @@ class DirectionsTest extends FunSuite with Matchers {
 
     test("tertiary progressed houses") {
         implicit val now = InitApp.state.setNowChart
-        val stored: Chart = InitApp.setChartFromLoadData("personal",1)
+        InitApp.state.setChartFromLoadData("personal",1)
+        val stored = InitApp.state.currentChart()
         val tertSun = Directions.tertiaryProgressionPlanets(stored).head.longitud
         val houses = Directions.tertiaryProgressedHouses(stored, tertSun)
         assert(houses.size == 12)

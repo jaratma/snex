@@ -1,20 +1,19 @@
 package eideia.userdata
 
 import java.util.concurrent.ForkJoinPool
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.duration._
+import scala.languageFeature.existentials
+
+import slick.jdbc.SQLiteProfile.api._
+import slick.jdbc.meta.MTable
 
 import eideia.{State, DateManager => DM}
-import slick.jdbc.SQLiteProfile.api._
-
-import scala.concurrent.{Await, ExecutionContext, Future}
 import eideia.models.UserData
-
-import scala.concurrent.duration._
 import eideia.InitApp.userConfPath
 import eideia.atlas.AtlasQuery
-import slick.jdbc.meta.MTable
 import eideia.InitApp.state
 
-import scala.languageFeature.existentials
 
 object UserDataManager {
     implicit val executor =  ExecutionContext.fromExecutor(new ForkJoinPool(20))
@@ -114,5 +113,10 @@ object UserDataManager {
         }
         exec(query.result)
     }
+
+   def getAllRowsFromDB: Seq[UserData] = {
+       val tables = getTableNames
+       (for (t <- tables) yield exec(queryForThisTable(t).result)).flatten
+   }
 }
 

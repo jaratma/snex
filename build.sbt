@@ -30,7 +30,10 @@ libraryDependencies ++= Seq(
     "com.softwaremill.sttp" %% "core" % "1.3.0",
     "org.scala-lang.modules" %% "scala-xml" % "1.1.0",
     "ch.qos.logback"      % "logback-classic" % "1.2.3",
-    "org.scalafx"   %% "scalafx"   % "8.0.144-R12"
+    "org.scalafx"   %% "scalafx"   % "8.0.144-R12",
+    "org.kordamp.ikonli" % "ikonli-javafx" % "2.3.0",
+    "org.kordamp.ikonli" % "ikonli-material-pack" % "2.3.0",
+    "org.controlsfx" % "controlsfx" % "8.40.14"
 )
 
 unmanagedResourceDirectories in Compile += baseDirectory.value / "lib_extra/darwin"
@@ -44,7 +47,8 @@ mappings in (Compile, packageBin) += {
 initialCommands in console :=
     """
       |import eideia._
-      |val chart = InitApp.setChartFromLoadData("personal",1)
+      |InitApp.state.setChartFromLoadData("personal",1)
+      |val chart = InitApp.state.currentChart()
       |val points = ephe.EpheDriver.huberPoints(chart)
     """.stripMargin
 

@@ -6,8 +6,8 @@ import java.io.File
 import java.time.ZonedDateTime
 
 import eideia.atlas.AtlasQuery
-import eideia.models.{NexConf, Chart, Location, UserData}
-import eideia.userdata.UserDataManager
+import eideia.models.{Location, NexConf}
+import eideia.userdata.LocationTriplet
 import org.ini4j.Ini
 
 object InitApp {
@@ -45,16 +45,11 @@ object InitApp {
 
     //TODO : where an when init customDB
     //AtlasQuery.initCustomDB
+    val defaultLocation: Location =
+        AtlasQuery.getLocationFromLegacyTriplet(LocationTriplet(config.locality,config.region, config.country)).get
+    val defaultTimeZone: String = defaultLocation.timezone
+    val defaultDatabase: String = config.database
 
-    implicit val state: State = new State(config)
-
-    def setChartFromLoadData(table: String, id: Long): Chart = {
-        val userData: UserData = UserDataManager.loadRegisterById(table, id).get
-        val date: ZDT = DateManager.parseDateString(userData.date)
-        val location: Location = AtlasQuery.getLocationFromUserData(userData).get
-        val utc = DateManager.utcFromLocal(date)
-        Chart(utc,location.latitude, location.longitude)
-    }
-
+    implicit val state: State = new State(defaultLocation)
 
 }
