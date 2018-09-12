@@ -1,15 +1,14 @@
 package eideia.atlas
 
-import scala.collection.mutable.ArrayBuffer
-import scala.io.Source
-import eideia.models.{Admin1, Admin2, Location}
 import eideia.atlas.AtlasQuery.{Admin1Table, Admin2Table, LocationTable}
+import eideia.models.{Admin1, Admin2, Location}
 import slick.jdbc.SQLiteProfile.api._
 import slick.jdbc.meta.MTable
 
-import scala.concurrent.{Await, Future}
+import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{Await, Future}
+import scala.io.Source
 
 object GenerateCitiesDB {
 
@@ -105,7 +104,11 @@ object GenerateCitiesDB {
         if (!doesTableExists("admin2")) {
             val schema = admins2.schema.create
             Await.result(db.run(DBIO.seq(schema)), 2.seconds)
+        }  else {
+            println("Deleting rows...")
+            val rows = Await.result(db.run(sqlu"DELETE FROM admin2"), Duration.Inf)
         }
+        println("Inserting rows")
         val rows: Option[Int] = Await.result(db.run(admins2 ++= ads2), Duration.Inf)
         println(s"Inserted ${rows.get} rows.")
         rows
