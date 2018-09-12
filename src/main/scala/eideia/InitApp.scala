@@ -5,10 +5,12 @@ import java.nio.file.{Files, Paths}
 import java.io.File
 import java.time.ZonedDateTime
 
-import eideia.atlas.AtlasQuery
+import eideia.atlas.{AtlasQuery, CountryResolver}
 import eideia.models.{Location, NexConf}
 import eideia.userdata.LocationTriplet
 import org.ini4j.Ini
+import scalafx.application.JFXApp.PrimaryStage
+import scalafx.beans.property.ObjectProperty
 
 object InitApp {
     type ZDT = ZonedDateTime
@@ -49,6 +51,10 @@ object InitApp {
         AtlasQuery.getLocationFromLegacyTriplet(LocationTriplet(config.locality,config.region, config.country)).get
     val defaultTimeZone: String = defaultLocation.timezone
     val defaultDatabase: String = config.database
+
+    val countries = CountryResolver.mapCodeToLocalizedCountry(config.lang)
+
+    val stage = new ObjectProperty[PrimaryStage](this,"stage")
 
     implicit val state: State = new State(defaultLocation)
 

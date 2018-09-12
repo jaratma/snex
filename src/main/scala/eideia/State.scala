@@ -29,28 +29,12 @@ class State(val defaultLocation: Location) {
         )
     }
 
-    val infoLabels = new ObjectProperty[InfoLabels](this, "infoLabels", InfoLabels(currentUserData())) {
-        onChange {
-            (_,_,nval) => println(s"info changed: $nval")
-        }
-    }
-
-    val dateLabel = new StringProperty(this, "date-label", Utils.formatDateString(localnow.value.toString))
-
-    val currentLocation = new ObjectProperty[Location](this, "location", AtlasQuery.getLocationFromUserData(setUserFromHereAndNow).get
-    )
-
-    val geoLabel = new StringProperty(this, "geo-label", Utils.formatGeoData(currentLocation()))
-
+    val infoLabels = InfoLabels(currentUserData(), localnow.value.toString)
+    val currentLocation = new ObjectProperty[Location](this, "location", AtlasQuery.getLocationFromUserData(setUserFromHereAndNow).get)
     val currentRegister = new ObjectProperty[Register](this, "currentRegister", Register(currentDatabase.value, 0L)) {
         onChange { (_, _, nval) => {
             currentUserData.value = UserDataManager.loadRegisterById(nval.table, nval.rid).get
-            infoLabels.value = InfoLabels(currentUserData.value)
-            println(infoLabels)
-            //println(infoLabels.value.firstNameLabel)
-            dateLabel.value = Utils.formatDateString(currentUserData.value.date)
-            //currentLocation.value = AtlasQuery.getLocationFromUserData(currentUserData.value).getOrElse(defaultLocation)
-            //geoLabel.value = Utils.formatGeoData(currentLocation())
+            infoLabels.update(currentUserData.value)
             }
         }
     }

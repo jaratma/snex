@@ -86,6 +86,15 @@ object AtlasQuery {
         }
     }
 
+    def getAdmin1Name(country: String, code: String) = {
+        lazy val admins1 = TableQuery[Admin1Table]
+        val query = admins1.filter(r => (r.country === country) && (r.regionCode === code) ).map(_.name)
+        exec(query.result.headOption) match {
+            case Some(name) => name
+            case _ => code
+        }
+    }
+
     def getLocationFromLegacyTriplet(tpl: LocationTriplet): Option[Location] = {
         val query = messages.filter(r => (r.name like tpl.city)  && r.country === tpl.country && r.admin1 === tpl.region)
         exec(query.result.headOption)

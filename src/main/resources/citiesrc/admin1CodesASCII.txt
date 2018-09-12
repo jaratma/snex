@@ -585,19 +585,19 @@ CK.11695390	Rakahanga	Rakahanga	11695390
 CK.11695425	Rarotonga	Rarotonga	11695425
 CL.01	Valparaíso	Valparaiso	3868621
 CL.15	Tarapacá	Tarapaca	3870116
-CL.12	Santiago Metropolitan	Santiago Metropolitan	3873544
-CL.11	Maule Region	Maule Region	3880306
-CL.14	Los Lagos Region	Los Lagos Region	3881974
-CL.08	O'Higgins Region	O'Higgins Region	3883281
-CL.07	Coquimbo Region	Coquimbo Region	3893623
+CL.12	Santiago	Santiago Metropolitan	3873544
+CL.11	Maule	Maule Region	3880306
+CL.14	Los Lagos	Los Lagos Region	3881974
+CL.08	O'Higgins	O'Higgins Region	3883281
+CL.07	Coquimbo	Coquimbo Region	3893623
 CL.06	Biobío	Biobio	3898380
 CL.05	Atacama	Atacama	3899191
 CL.04	Araucanía	Araucania	3899463
 CL.03	Antofagasta	Antofagasta	3899537
 CL.02	Aysén	Aysen	3900333
-CL.10	Region of Magallanes	Region of Magallanes	4036650
+CL.10	Magallanes	Region of Magallanes	4036650
 CL.16	Arica y Parinacota	Arica y Parinacota	6693562
-CL.17	Los Ríos Region	Los Rios Region	6693563
+CL.17	Los Ríos	Los Rios Region	6693563
 CM.09	South-West	South-West	2221788
 CM.14	South	South	2221789
 CM.08	West	West	2222934

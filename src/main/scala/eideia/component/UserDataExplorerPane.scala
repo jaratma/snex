@@ -3,7 +3,7 @@ package eideia.component
 import scalafx.Includes._
 import scalafx.geometry.Insets
 import scalafx.scene.control._
-import scalafx.scene.layout.{HBox, VBox}
+import scalafx.scene.layout.{HBox, Priority, VBox}
 import scalafx.scene.control.TableColumn._
 import scalafx.scene.text.Text
 import scalafx.scene.paint.Color
@@ -12,6 +12,7 @@ import eideia.InitApp.state
 import eideia.InitApp
 import eideia.models.Person
 import eideia.controller.UserDataPresenter
+import scalafx.application.JFXApp.PrimaryStage
 
 object UserDataExplorerPane {
     lazy val config = InitApp.config
@@ -47,10 +48,12 @@ object UserDataExplorerPane {
     }
 
     val searchField: TextField = new TextField {
+        hgrow = Priority.Always
         onAction = (ev) => presenter.searchAction(ev)
     }
 
-    val hbox = new HBox {
+    val searchBox = new HBox {
+            hgrow = Priority.Always
             spacing = 4
             children = Seq(
                 searchField,
@@ -65,15 +68,18 @@ object UserDataExplorerPane {
         style = "-fx-border-color: lightsteelblue; -fx-border-radius: 2;"
         children = Seq(
             new Label {
-                text <== state.infoLabels().firstNameLabel.concat(state.infoLabels().lastNameLabel)
+                text <== state.infoLabels.firstNameLabel.concat(state.infoLabels.lastNameLabel)
                 style = "-fx-text-fill: slateblue"
             },
             new Label {
-                text <== state.dateLabel
+                text <== state.infoLabels.dateLabel
                 style = "-fx-text-fill: sienna"
             },
             new Label {
-                text <== state.infoLabels.value.geoLabel
+                text <== state.infoLabels.geoLabel
+            },
+            new Button("Editar") {
+                onAction = handle(DataEntryDialog.onShowDataEntryDialog(InitApp.stage.value))
             }
         )
     }
@@ -86,7 +92,7 @@ object UserDataExplorerPane {
         spacing = 6
         children = List(
             card,
-            hbox,
+            searchBox,
             choiceTable,
             userExplorer
         )

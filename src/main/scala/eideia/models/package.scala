@@ -46,10 +46,20 @@ package object models {
 
     case class Register(table: String, rid: Long)
 
-    case class InfoLabels(userData: UserData) {
+    case class InfoLabels(var userData: UserData, localnow: String) {
         val firstNameLabel = new StringProperty(this, "fist-name-label", userData.first)
         val lastNameLabel = new StringProperty(this, "last-name-label", userData.last)
         private val location = AtlasQuery.getLocationFromUserData(userData).get
         val geoLabel = new StringProperty(this, "geoLabel", Utils.formatGeoData(location))
+        val dateLabel = new StringProperty(this, "date-label", Utils.formatDateString(localnow))
+
+        def update(data: UserData) = {
+            userData = data
+            firstNameLabel.value = data.first
+            lastNameLabel.value = data.last
+            val location = AtlasQuery.getLocationFromUserData(data).get
+            geoLabel.value = Utils.formatGeoData(location)
+            dateLabel.value = Utils.formatDateString(data.date)
+        }
     }
 }

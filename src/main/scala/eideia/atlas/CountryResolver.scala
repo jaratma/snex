@@ -8,6 +8,11 @@ object CountryResolver {
         for ( (k,v) <- codeMap ) yield v(langs.indexOf(lang)) -> k
     }
 
+    def mapCodeToLocalizedCountry(lang: String = "ES"): Map[String,String] = {
+        assert(langs.contains(lang))
+        for ( (k,v) <- codeMap ) yield k -> v(langs.indexOf(lang))
+    }
+
     val codeMap = Map[String,List[String]](
         "AD" -> List[String]("Andorra","Andorra","Andorra","Andorra"),
         "AE" -> List[String]("Emiratos Árabes Unidos","United Arab Emirates","Vereinigte Arabische Emirate","Unió dels Emirats Àrabs"),
