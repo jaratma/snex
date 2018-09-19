@@ -10,13 +10,14 @@ class QueryGeonamesTest extends FunSuite with Matchers {
     test("get a location from query") {
         val locs =  QG.parseQuery(QG.sendQuery("Gurtnellen","CH"))
         assert(locs.isInstanceOf[Seq[Location]])
+        println(locs)
     }
 
     ignore("insert new custom location") {
         val i = InitApp
         val locs =  QG.parseQuery(QG.sendQuery("Gurtnellen","CH"))
         val loc: Location = locs.head
-        val rows = AtlasQuery.inserCustomLocation(loc)
+        val rows = AtlasQuery.insertCustomLocation(loc)
         assert(rows == 1)
     }
 }

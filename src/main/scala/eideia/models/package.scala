@@ -29,7 +29,9 @@ package object models {
             admin2: String,
             elevation: Double,
             timezone: String,
-            id: Long = 0L)
+            id: Long = 0L) {
+        override def toString: String =  Utils.formatGeoData(this)
+    }
 
     case class Admin1(country: String, regionCode: String, name: String)
 
@@ -42,6 +44,13 @@ package object models {
     class Person(name_ : String, val id : Long) {
         val name = new StringProperty(this, "name", name_)
         override def toString: String = s"Person: ${name.value}, ${id}"
+    }
+
+    class Place(name_ : String, admin_ : String, geo_ : String ,val id: Long) {
+        val name = new StringProperty(this, "name", name_)
+        val admin = new StringProperty(this, "admin", admin_)
+        val geo = new StringProperty(this,"geo", geo_)
+        override def toString: String = s"Place: ${name.value}, ${id}"
     }
 
     case class Register(table: String, rid: Long)

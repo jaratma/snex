@@ -16,6 +16,7 @@ class State(val defaultLocation: Location) {
         () => DateManager.utcFromLocal(localnow.value), localnow
     )
 
+    val currentLocation = new ObjectProperty[Location](this, "location", AtlasQuery.getLocationFromUserData(setUserFromHereAndNow).get)
     val currentChart = new ObjectProperty[Chart](this, "currentChart", setNowChart)
     val currentDatabase = new ObjectProperty[String](this, "currentDatabase", InitApp.defaultDatabase)
     val currentUserData = new ObjectProperty[UserData](this, "currentUserData", setUserFromHereAndNow) {
@@ -30,7 +31,6 @@ class State(val defaultLocation: Location) {
     }
 
     val infoLabels = InfoLabels(currentUserData(), localnow.value.toString)
-    val currentLocation = new ObjectProperty[Location](this, "location", AtlasQuery.getLocationFromUserData(setUserFromHereAndNow).get)
     val currentRegister = new ObjectProperty[Register](this, "currentRegister", Register(currentDatabase.value, 0L)) {
         onChange { (_, _, nval) => {
             currentUserData.value = UserDataManager.loadRegisterById(nval.table, nval.rid).get

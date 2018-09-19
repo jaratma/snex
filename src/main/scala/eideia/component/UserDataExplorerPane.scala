@@ -1,7 +1,7 @@
 package eideia.component
 
 import scalafx.Includes._
-import scalafx.geometry.Insets
+import scalafx.geometry.{Insets, Pos}
 import scalafx.scene.control._
 import scalafx.scene.layout.{HBox, Priority, VBox}
 import scalafx.scene.control.TableColumn._
@@ -12,7 +12,6 @@ import eideia.InitApp.state
 import eideia.InitApp
 import eideia.models.Person
 import eideia.controller.UserDataPresenter
-import scalafx.application.JFXApp.PrimaryStage
 
 object UserDataExplorerPane {
     lazy val config = InitApp.config
@@ -32,6 +31,15 @@ object UserDataExplorerPane {
         }
         style = "-fx-background-color: #e3e4e4; -fx-background-radius: 60; -fx-background-insets: 0, 0"
         onAction = (ev) => presenter.clearAction(ev)
+    }
+    val editButton: Button = new Button {
+        graphic = new FontIcon {
+            setIconLiteral("gmi-edit")
+            iconSizeProperty.value = 18
+            iconColorProperty.value = Color.SlateGray
+        }
+        style = "-fx-background-color: #e3e4e4; -fx-background-radius: 60; -fx-background-insets: 0, 0"
+        onAction = handle(DataEntryDialog.onShowDataEntryDialog(InitApp.stage.value))
     }
 
     val choiceTable: ChoiceBox[String] = new ChoiceBox[String]() {
@@ -78,8 +86,9 @@ object UserDataExplorerPane {
             new Label {
                 text <== state.infoLabels.geoLabel
             },
-            new Button("Editar") {
-                onAction = handle(DataEntryDialog.onShowDataEntryDialog(InitApp.stage.value))
+            new HBox {
+                alignment = Pos.BaselineRight
+                children = Seq(editButton)
             }
         )
     }

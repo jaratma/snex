@@ -1,9 +1,11 @@
 package eideia.atlas
 
+import scala.collection.immutable.SortedMap
+
 object CountryResolver {
     val langs = List("ES", "EN", "DE", "CA")
 
-    def mapLocalizedCountryTocode(lang: String = "ES" ): Map[String,String] = {
+    def mapLocalizedCountryTocode(lang: String = "ES" ): SortedMap[String,String] = {
         assert(langs.contains(lang))
         for ( (k,v) <- codeMap ) yield v(langs.indexOf(lang)) -> k
     }
@@ -13,7 +15,11 @@ object CountryResolver {
         for ( (k,v) <- codeMap ) yield k -> v(langs.indexOf(lang))
     }
 
-    val codeMap = Map[String,List[String]](
+    def choiceOne(code: String, lang: String): String = {
+        codeMap(code)(langs.indexOf(lang))
+    }
+
+    val codeMap = SortedMap[String,List[String]](
         "AD" -> List[String]("Andorra","Andorra","Andorra","Andorra"),
         "AE" -> List[String]("Emiratos Árabes Unidos","United Arab Emirates","Vereinigte Arabische Emirate","Unió dels Emirats Àrabs"),
         "AF" -> List[String]("Afganistán","Afghanistan","Afghanistan","Afganistan"),

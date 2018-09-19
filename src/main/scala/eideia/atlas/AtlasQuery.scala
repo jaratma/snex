@@ -35,7 +35,7 @@ object AtlasQuery {
         }
     }
 
-    def inserCustomLocation(loc: Location): Int = {
+    def insertCustomLocation(loc: Location): Int = {
         val queryCustom = TableQuery[LocationTable]
         Await.result(customDb.run(queryCustom += loc), 2.seconds)
     }
@@ -86,7 +86,7 @@ object AtlasQuery {
         }
     }
 
-    def getAdmin1Name(country: String, code: String) = {
+    def getAdmin1Name(country: String, code: String): String = {
         lazy val admins1 = TableQuery[Admin1Table]
         val query = admins1.filter(r => (r.country === country) && (r.regionCode === code) ).map(_.name)
         exec(query.result.headOption) match {
@@ -104,6 +104,16 @@ object AtlasQuery {
     def getLocationFromLegacyDoublet(tpl: LocationTriplet): Option[Location] = {
         val query = messages.filter(r => (r.name like tpl.city)  && r.country === tpl.country)
         exec(query.result.headOption)
+    }
+
+    def getLocationFromCityAndCountryCode(city: String, code: String): Seq[AtlasQuery.LocationTable#TableElementType]= {
+        val query = messages.filter(r => (r.name like s"${city}%")  && r.country === code).sortBy(r => r.name)
+        Await.result(locDb.run(query.result), 5.seconds) ++ Await.result(customDb.run(query.result), 5.seconds)
+    }
+
+    def getLocationFromCityAndId(city: String, lid: Long): Location = {
+        val query = messages.filter(r => r.name === city  && r.id === lid)
+        (Await.result(locDb.run(query.result), 5.seconds) ++ Await.result(customDb.run(query.result), 5.seconds)).head
     }
 
     def getLocationFromLegacyData(legacy: LegacyEssentialFields): Option[Location] = {

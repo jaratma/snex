@@ -4,6 +4,7 @@ import scala.util.Properties
 import java.nio.file.{Files, Paths}
 import java.io.File
 import java.time.ZonedDateTime
+import java.util.Locale
 
 import eideia.atlas.{AtlasQuery, CountryResolver}
 import eideia.models.{Location, NexConf}
@@ -11,6 +12,8 @@ import eideia.userdata.LocationTriplet
 import org.ini4j.Ini
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.beans.property.ObjectProperty
+
+import scala.collection.SortedMap
 
 object InitApp {
     type ZDT = ZonedDateTime
@@ -45,6 +48,9 @@ object InitApp {
             ConfigManager.getUserConfig(userConfFile)
     }
 
+    Locale.setDefault(new Locale(config.lang, config.lang))
+
+    val localizedCountries: Map[String,String] = CountryResolver.mapLocalizedCountryTocode(config.lang)
     //TODO : where an when init customDB
     //AtlasQuery.initCustomDB
     val defaultLocation: Location =

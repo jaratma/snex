@@ -13,14 +13,14 @@ object QueryGeonames {
         sttp.get(uri).send().body.right.get
     }
 
-    def parseQuery(response: String) = {
+    def parseQuery(response: String) : Seq[Location] = {
         val cities = XML.loadString(response)
-        assert((cities \\ "totalResultsCount").text.toInt > 0)
+        //assert((cities \\ "totalResultsCount").text.toInt > 0)
 
         for { el <- cities \\ "geoname" } yield Location((el \\ "name").text,
             (el \\ "lat").text.toDouble,
             (el \\ "lng").text.toDouble,
-            (el \\ "country").text,
+            (el \\ "countryCode").text,
             (el \\ "adminCode1").text,
             (el \\ "adminCode2").text,
             (el \\ "srtm3").text.toDouble,
