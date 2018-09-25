@@ -24,13 +24,6 @@ class DataEntryPresenter(grid: GridPane,
 
     countries.items = ObservableBuffer[String](countryNames)
     countries.selectionModel().select(initialCountry)
-    countries.onKeyTyped =  ev => {
-        val ichar: String = ev.getCharacter
-        countries.items.value.find(i => i.toLowerCase.startsWith(ichar))  match {
-            case Some(item) => countries.selectionModel().select(item)
-            case None =>
-        }
-    }
 
     searchField.onAction = ev => enterEvent(ev, searchField.text.value)
 

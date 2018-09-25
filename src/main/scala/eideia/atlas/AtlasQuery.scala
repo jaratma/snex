@@ -128,7 +128,8 @@ object AtlasQuery {
         val (date,city,country) = userdata match { case UserData(_, _, _, date,city,country,_,_,_) => (date,city,country) }
         val zone = DateManager.parseDateString(date).getZone.toString
         val query = messages.filter(r => (r.name like city)  && r.country === country && r.timezone ===  zone)
-        exec(query.result.headOption)
+        (Await.result(customDb.run(query.result), 3.seconds) ++ Await.result(locDb.run(query.result), 5.seconds)).headOption
+        //exec(query.result.headOption)
     }
 
     // search location in both databases

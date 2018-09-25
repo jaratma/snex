@@ -30,6 +30,7 @@ libraryDependencies ++= Seq(
     "com.softwaremill.sttp" %% "core" % "1.3.0",
     "org.scala-lang.modules" %% "scala-xml" % "1.1.0",
     "ch.qos.logback"      % "logback-classic" % "1.2.3",
+    "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0",
     "org.scalafx"   %% "scalafx"   % "8.0.144-R12",
     "org.kordamp.ikonli" % "ikonli-javafx" % "2.3.0",
     "org.kordamp.ikonli" % "ikonli-material-pack" % "2.3.0",

@@ -94,9 +94,14 @@ object UserDataManager {
         rows
     }
 
-    def insertUserData(data: UserData, table: String) = {
+    def insertUserData(data: UserData, table: String): Int = {
         val messages = queryForThisTable(table)
-        val rows: Int = Await.result(db.run(messages += data), Duration.Inf)
+        Await.result(db.run(messages += data), Duration.Inf)
+    }
+
+    def updateUserDate(data: UserData, table: String, id: Long): Int = {
+        val messages = queryForThisTable(table).filter(_.id === id).map(m => (m.first, m.last, m.tags, m.date,m.city,m.country,m.admin1,m.admin2))
+        Await.result(db.run(messages.update((data.first,data.last,data.tags,data.date,data.city,data.country,data.admin1,data.admin2))), Duration.Inf)
     }
 
     def loadRegisterById(table: String, id: Long) : Option[UserData] = {

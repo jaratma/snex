@@ -32,6 +32,7 @@ object UserDataExplorerPane {
         style = "-fx-background-color: #e3e4e4; -fx-background-radius: 60; -fx-background-insets: 0, 0"
         onAction = (ev) => presenter.clearAction(ev)
     }
+
     val editButton: Button = new Button {
         graphic = new FontIcon {
             setIconLiteral("gmi-edit")
@@ -39,9 +40,18 @@ object UserDataExplorerPane {
             iconColorProperty.value = Color.SlateGray
         }
         style = "-fx-background-color: #e3e4e4; -fx-background-radius: 60; -fx-background-insets: 0, 0"
-        onAction = handle(DataEntryDialog.onShowDataEntryDialog(InitApp.stage.value))
+        onAction = handle(DataEntryDialog.onShowDataEntryDialog(InitApp.stage.value, presenter))
     }
 
+    val addButton: Button = new Button {
+        graphic = new FontIcon {
+            setIconLiteral("gmi-add")
+            iconSizeProperty.value = 18
+            iconColorProperty.value = Color.SlateGray
+        }
+        style = "-fx-background-color: #e3e4e4; -fx-background-radius: 60; -fx-background-insets: 0, 0"
+        //onAction = handle(DataEntryDialog.onShowDataEntryDialog(InitApp.stage.value))
+    }
     val choiceTable: ChoiceBox[String] = new ChoiceBox[String]() {
         selectionModel().select(config.database)
     }
@@ -88,7 +98,8 @@ object UserDataExplorerPane {
             },
             new HBox {
                 alignment = Pos.BaselineRight
-                children = Seq(editButton)
+                spacing = 4
+                children = Seq(addButton,editButton)
             }
         )
     }

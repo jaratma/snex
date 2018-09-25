@@ -15,10 +15,11 @@ import scalafx.scene.layout.{ColumnConstraints, GridPane}
 import scalafx.scene.control.TableColumn._
 import scalafx.scene.paint.Color
 import org.kordamp.ikonli.javafx.FontIcon
-import eideia.controller.DataEntryPresenter
+import eideia.controller.{DataEntryPresenter, UserDataPresenter}
 import eideia.models.{Location, Place, UserData}
 import eideia.InitApp.state
 import eideia.atlas.AtlasQuery
+import eideia.PrefixSelectionCustomizer
 
 case class BareData(first: String, last: String, tags: String, date: ZonedDateTime, place: Location)
 
@@ -29,7 +30,7 @@ object DataEntryDialog {
     val tags = new TextArea {
         prefRowCount = 1
         prefColumnCount = 20
-        promptText = "cero o más palabras"
+        promptText = "cero o más etiquetas"
     }
     val datePicker = new DatePicker(LocalDate.now)
     val hourPicker = new Spinner(min = 0: Int, max = 23: Int, LocalTime.now.getHour) {
@@ -141,9 +142,11 @@ object DataEntryDialog {
         add(locExplorer,0,7,2,1)
     }
 
+    PrefixSelectionCustomizer.customize(countryChoiceBox)
+
     val presenter = new DataEntryPresenter(grid,searchField,countryChoiceBox,locExplorer,place,labelForLoc)
 
-    def onShowDataEntryDialog(stage: PrimaryStage): Unit = {
+    def onShowDataEntryDialog(stage: PrimaryStage, userExplorer: UserDataPresenter): Unit = {
         val currentUser: UserData = state.currentUserData.value
         firstName.text = currentUser.first
         lastName.text = currentUser.last
@@ -165,7 +168,7 @@ object DataEntryDialog {
             resizable = true
         }
 
-        val loginButtonType = new ButtonType("Crear", ButtonData.OKDone)
+        val loginButtonType = new ButtonType("Aceptar", ButtonData.OKDone)
         dialog.dialogPane().buttonTypes = Seq(loginButtonType, ButtonType.Cancel)
         dialog.dialogPane().content = grid
         dialog.resultConverter = dialogButton =>
@@ -182,7 +185,7 @@ object DataEntryDialog {
         result match {
             case Some(BareData(f, l, t, d, p)) =>
                 val ud = UserData(f,l,t,d.toString,p.name,p.country,p.admin1,p.admin2)
-                println(ud)
+                userExplorer.updateUser(ud)
             case Some(_) =>
             case None => println("Dialog returned: None")
         }

@@ -1,5 +1,6 @@
 package eideia
 
+import com.typesafe.scalalogging.Logger
 import eideia.InitApp.ZDT
 import scalafx.beans.property.{ObjectProperty, StringProperty}
 import scalafx.beans.binding.{Bindings, ObjectBinding}
@@ -9,6 +10,8 @@ import eideia.userdata.UserDataManager
 
 
 class State(val defaultLocation: Location) {
+
+    val logger = Logger[State]
 
     def localnow: ObjectProperty[ZDT] = new ObjectProperty[ZDT](this, "localnow", DateManager.now(InitApp.defaultTimeZone))
 
@@ -26,6 +29,7 @@ class State(val defaultLocation: Location) {
                 val location: Location = AtlasQuery.getLocationFromUserData(nval).getOrElse(InitApp.defaultLocation)
                 val utc = DateManager.utcFromLocal(date)
                 currentChart.value = Chart(utc, location.latitude, location.longitude)
+                logger.info(s"Current User: $nval")
             }
         )
     }

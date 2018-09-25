@@ -5,7 +5,7 @@ import scalafx.scene.control.{ChoiceBox, TableView, TextField}
 import eideia.{InitApp, State}
 import eideia.userdata.UserDataManager
 import scalafx.collections.ObservableBuffer
-import eideia.models.{NexConf, Person, Register}
+import eideia.models.{NexConf, Person, Register, UserData}
 import scalafx.collections.transformation.FilteredBuffer
 import javafx.event.ActionEvent
 
@@ -36,6 +36,14 @@ class UserDataPresenter(choice: ChoiceBox[String],
             state.currentRegister.value = Register(table, nval.id)
         }
     })
+
+
+    def updateUser(ud: UserData) = {
+        val table = state.currentRegister.value.table
+        val uid = state.currentUserData.value.id
+        val r = UserDataManager.updateUserDate(ud,table,uid)
+        state.logger.info(s"updated $r register(s)")
+    }
 
     def searchAction(ev: ActionEvent) = {
         val text = searchField.text.value
