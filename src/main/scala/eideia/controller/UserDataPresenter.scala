@@ -1,13 +1,14 @@
 package eideia.controller
 
 import scalafx.Includes._
-import scalafx.scene.control.{ChoiceBox, TableView, TextField}
+import scalafx.scene.control._
 import eideia.{InitApp, State}
 import eideia.userdata.UserDataManager
 import scalafx.collections.ObservableBuffer
 import eideia.models.{NexConf, Person, Register, UserData}
 import scalafx.collections.transformation.FilteredBuffer
 import javafx.event.ActionEvent
+import scalafx.scene.control.Alert.AlertType
 
 class UserDataPresenter(choice: ChoiceBox[String],
                         explorer: TableView[Person],
@@ -34,6 +35,8 @@ class UserDataPresenter(choice: ChoiceBox[String],
         if (nval != null) {
             val table = choice.selectionModel().selectedItemProperty().value
             state.currentRegister.value = Register(table, nval.id)
+            state.currentUserData.value = UserDataManager.loadRegisterById(table,nval.id).get
+            state.infoLabels.update(state.currentUserData.value)
         }
     })
 
@@ -43,6 +46,47 @@ class UserDataPresenter(choice: ChoiceBox[String],
         val uid = state.currentUserData.value.id
         val r = UserDataManager.updateUserDate(ud,table,uid)
         state.logger.info(s"updated $r register(s)")
+        rows.clear()
+        rows ++= rowsFromTable(state.currentDatabase.value)
+        explorer.items = rows
+        val p = rows.find(p => p.name.value == ud.first).head
+        explorer.selectionModel().select(p)
+    }
+
+    def inserUser(ud: UserData) = {
+        val table = state.currentRegister.value.table
+        val r = UserDataManager.insertUserData(ud,table)
+        state.logger.info(s"inserted $r register(s)")
+        rows.clear()
+        rows ++= rowsFromTable(state.currentDatabase.value)
+        explorer.items = rows
+        val p = rows.find(p => p.name.value == ud.first).head
+        explorer.selectionModel().select(p)
+    }
+
+    def deleteUser(ev: ActionEvent) = {
+        val tev = ev.getEventType()
+        val table = choice.selectionModel().selectedItemProperty().value
+        val reg: Person = explorer.selectionModel().selectedItemProperty.value
+        val alert = new Alert(AlertType.Confirmation) {
+            initOwner(InitApp.stage.value)
+            title = "Confirmar"
+            headerText = "Confirmar eliminar"
+            contentText = s"¿Eliminar ${reg.name.value}"
+        }
+        val result = alert.showAndWait()
+
+        result match  {
+            case Some(ButtonType.OK) =>
+                val r = UserDataManager.deleteUserData(reg.id, table)
+                state.logger.info(s"Deleted $r ${reg.name.value}")
+            case _ => state.logger.info("Delete cancelled.")
+        }
+    }
+
+    def isValidUserData(ud: UserData) : Boolean = {
+        ud.first != "" && ud.first.forall(c => c.isLetterOrDigit)
+        ud.isInstanceOf[UserData]
     }
 
     def searchAction(ev: ActionEvent) = {

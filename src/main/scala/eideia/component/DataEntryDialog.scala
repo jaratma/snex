@@ -146,7 +146,7 @@ object DataEntryDialog {
 
     val presenter = new DataEntryPresenter(grid,searchField,countryChoiceBox,locExplorer,place,labelForLoc)
 
-    def onShowDataEntryDialog(stage: PrimaryStage, userExplorer: UserDataPresenter): Unit = {
+    def onEditDataEntryDialog(stage: PrimaryStage, userExplorer: UserDataPresenter): Unit = {
         val currentUser: UserData = state.currentUserData.value
         firstName.text = currentUser.first
         lastName.text = currentUser.last
@@ -186,6 +186,41 @@ object DataEntryDialog {
             case Some(BareData(f, l, t, d, p)) =>
                 val ud = UserData(f,l,t,d.toString,p.name,p.country,p.admin1,p.admin2)
                 userExplorer.updateUser(ud)
+            case Some(_) =>
+            case None => println("Dialog returned: None")
+        }
+
+    }
+
+    def onNewDataEntryDialog(stage: PrimaryStage, userExplorer: UserDataPresenter): Unit = {
+        val hfactory: jfxSpinnerValueFactory[Int] = hourPicker.valueFactory.value.asInstanceOf[jfxSpinnerValueFactory[Int]]
+        val mfactory: jfxSpinnerValueFactory[Int] = minutePicker.valueFactory.value.asInstanceOf[jfxSpinnerValueFactory[Int]]
+
+        val dialog = new Dialog[BareData] {
+            initOwner(stage)
+            title = "Entradas"
+            width = 200
+            resizable = true
+        }
+
+        val loginButtonType = new ButtonType("Aceptar", ButtonData.OKDone)
+        dialog.dialogPane().buttonTypes = Seq(loginButtonType, ButtonType.Cancel)
+        dialog.dialogPane().content = grid
+        dialog.resultConverter = dialogButton =>
+            if (dialogButton == loginButtonType) {
+                val lt = LocalTime.of(hfactory.value.value,mfactory.value.value)
+                val localDateTime = LocalDateTime.of(datePicker.value(),lt)
+                val zdt = ZonedDateTime.of(localDateTime, ZoneId.of(place.value.timezone))
+                BareData(firstName.text(), lastName.text(), tags.text(), zdt, place.value)
+            }
+            else null
+
+        val result = dialog.showAndWait()
+
+        result match {
+            case Some(BareData(f, l, t, d, p)) =>
+                val ud = UserData(f,l,t,d.toString,p.name,p.country,p.admin1,p.admin2)
+                    userExplorer.inserUser(ud)
             case Some(_) =>
             case None => println("Dialog returned: None")
         }

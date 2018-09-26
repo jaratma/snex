@@ -3,6 +3,7 @@ package eideia.component
 import scalafx.Includes._
 import scalafx.geometry.{Insets, Pos}
 import scalafx.scene.control._
+import scalafx.scene.control.MenuItem._
 import scalafx.scene.layout.{HBox, Priority, VBox}
 import scalafx.scene.control.TableColumn._
 import scalafx.scene.text.Text
@@ -30,7 +31,7 @@ object UserDataExplorerPane {
             iconColorProperty.value = Color.SlateGray
         }
         style = "-fx-background-color: #e3e4e4; -fx-background-radius: 60; -fx-background-insets: 0, 0"
-        onAction = (ev) => presenter.clearAction(ev)
+        onAction = ev => presenter.clearAction(ev)
     }
 
     val editButton: Button = new Button {
@@ -40,7 +41,7 @@ object UserDataExplorerPane {
             iconColorProperty.value = Color.SlateGray
         }
         style = "-fx-background-color: #e3e4e4; -fx-background-radius: 60; -fx-background-insets: 0, 0"
-        onAction = handle(DataEntryDialog.onShowDataEntryDialog(InitApp.stage.value, presenter))
+        onAction = handle(DataEntryDialog.onEditDataEntryDialog(InitApp.stage.value, presenter))
     }
 
     val addButton: Button = new Button {
@@ -50,10 +51,17 @@ object UserDataExplorerPane {
             iconColorProperty.value = Color.SlateGray
         }
         style = "-fx-background-color: #e3e4e4; -fx-background-radius: 60; -fx-background-insets: 0, 0"
-        //onAction = handle(DataEntryDialog.onShowDataEntryDialog(InitApp.stage.value))
+        onAction = handle(DataEntryDialog.onNewDataEntryDialog(InitApp.stage.value, presenter))
     }
     val choiceTable: ChoiceBox[String] = new ChoiceBox[String]() {
         selectionModel().select(config.database)
+    }
+
+    val dataMenu = new ContextMenu {
+        items +=
+            new MenuItem("Eliminar") {
+                onAction = { ev => presenter.deleteUser(ev) }
+            }
     }
 
     val userExplorer: TableView[Person] = new TableView[Person]() {
@@ -63,6 +71,18 @@ object UserDataExplorerPane {
                 cellValueFactory = { _.value.name }
             }
         columnResizePolicy = TableView.ConstrainedResizePolicy
+        //rowFactory = tv => new TableRow[Person] {
+        //    onMouseClicked = mv => if (mv.getButton == MouseButton.SECONDARY)  {
+        //        selectionModel()
+        //        mv.consume()
+        //        println(mv)
+        //        //println(tv.rowFactory.value)
+        //    }
+        //}
+        //onMouseClicked = ev => { if (ev.getButton == MouseButton.SECONDARY) {
+        //   dataMenu.show(userExplorer, ev.getScreenX, ev.getScreenY)
+        //} }
+        contextMenu = dataMenu
     }
 
     val searchField: TextField = new TextField {
