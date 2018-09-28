@@ -3,7 +3,7 @@ package eideia.controller
 import scalafx.Includes._
 import scalafx.scene.control._
 import eideia.{InitApp, State}
-import eideia.userdata.UserDataManager
+import eideia.userdata.{LegacyDataManager, UserDataManager}
 import scalafx.collections.ObservableBuffer
 import eideia.models.{NexConf, Person, Register, UserData}
 import scalafx.collections.transformation.FilteredBuffer
@@ -12,7 +12,8 @@ import scalafx.scene.control.Alert.AlertType
 
 class UserDataPresenter(choice: ChoiceBox[String],
                         explorer: TableView[Person],
-                        searchField: TextField)(implicit val state: State ) {
+                        searchField: TextField,
+                        deleter: ToggleButton)(implicit val state: State ) {
 
     val config: NexConf = InitApp.config
     val rows: ObservableBuffer[Person] = rowsFromTable(config.database)
@@ -32,64 +33,71 @@ class UserDataPresenter(choice: ChoiceBox[String],
     explorer.selectionModel().selectFirst()
     explorer.applyCss()
     explorer.selectionModel().selectedItemProperty().onChange( (_,_,nval) => {
-        if (nval != null) {
+        if (nval != null && !deleter.selected.value) {
             val table = choice.selectionModel().selectedItemProperty().value
             state.currentRegister.value = Register(table, nval.id)
             state.currentUserData.value = UserDataManager.loadRegisterById(table,nval.id).get
             state.infoLabels.update(state.currentUserData.value)
+        } else {
+            deleteUser(state.currentUserData.value.id)
         }
     })
 
+    def refreshExplorer(): Unit = {
+        rows.clear()
+        rows ++= rowsFromTable(state.currentDatabase.value)
+        explorer.items = rows
+    }
 
-    def updateUser(ud: UserData) = {
+    def updateUser(ud: UserData): Unit = {
         val table = state.currentRegister.value.table
         val uid = state.currentUserData.value.id
         val r = UserDataManager.updateUserDate(ud,table,uid)
         state.logger.info(s"updated $r register(s)")
-        rows.clear()
-        rows ++= rowsFromTable(state.currentDatabase.value)
-        explorer.items = rows
+        refreshExplorer()
         val p = rows.find(p => p.name.value == ud.first).head
         explorer.selectionModel().select(p)
     }
 
-    def inserUser(ud: UserData) = {
+    def insertUser(ud: UserData) :Unit  = {
         val table = state.currentRegister.value.table
         val r = UserDataManager.insertUserData(ud,table)
         state.logger.info(s"inserted $r register(s)")
-        rows.clear()
-        rows ++= rowsFromTable(state.currentDatabase.value)
-        explorer.items = rows
+        refreshExplorer()
         val p = rows.find(p => p.name.value == ud.first).head
         explorer.selectionModel().select(p)
     }
 
-    def deleteUser(ev: ActionEvent) = {
-        val tev = ev.getEventType()
+    def deleteUser(uid: Long): Unit = {
         val table = choice.selectionModel().selectedItemProperty().value
         val reg: Person = explorer.selectionModel().selectedItemProperty.value
-        val alert = new Alert(AlertType.Confirmation) {
-            initOwner(InitApp.stage.value)
-            title = "Confirmar"
-            headerText = "Confirmar eliminar"
-            contentText = s"¿Eliminar ${reg.name.value}"
-        }
-        val result = alert.showAndWait()
+        if (uid != reg.id) {
+            val alert = new Alert(AlertType.Confirmation) {
+                initOwner(InitApp.stage.value)
+                title = "Confirmar"
+                headerText = "Confirmar eliminar"
+                contentText = s"¿Eliminar ${reg.name.value}"
+            }
+            val result = alert.showAndWait()
 
-        result match  {
-            case Some(ButtonType.OK) =>
-                val r = UserDataManager.deleteUserData(reg.id, table)
-                state.logger.info(s"Deleted $r ${reg.name.value}")
-            case _ => state.logger.info("Delete cancelled.")
-        }
+            result match  {
+                case Some(ButtonType.OK) =>
+                    val r = UserDataManager.deleteUserData(reg.id, table)
+                    state.logger.info(s"Deleted $r ${reg.name.value}")
+                    deleter.selected = false
+                    refreshExplorer()
+                case _ => state.logger.info("Delete cancelled.")
+            }
+        } else
+            state.logger.warn("No se puede eliminar un registro en uso")
     }
 
-    def isValidUserData(ud: UserData) : Boolean = {
+    def isValidUserData(ud: UserData): Boolean = {
         ud.first != "" && ud.first.forall(c => c.isLetterOrDigit)
         ud.isInstanceOf[UserData]
     }
 
-    def searchAction(ev: ActionEvent) = {
+    def searchAction(ev: ActionEvent): Unit = {
         val text = searchField.text.value
         if (!text.isEmpty) {
             val table = choice.selectionModel().selectedItemProperty().value
@@ -97,7 +105,7 @@ class UserDataPresenter(choice: ChoiceBox[String],
         }
     }
 
-    def clearAction(event: ActionEvent) = {
+    def clearAction(event: ActionEvent): Unit = {
         searchField.text.value = ""
         explorer.items = rows
     }
@@ -115,5 +123,12 @@ class UserDataPresenter(choice: ChoiceBox[String],
             rows += new Person(name, ix)
         }
         rows
+    }
+
+    def convertLegacyData = {
+        if (InitApp.existsLegacyDB) {
+            val tables = LegacyDataManager.getTableNamesFromDb
+
+        }
     }
 }

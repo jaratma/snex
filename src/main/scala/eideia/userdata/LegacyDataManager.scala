@@ -14,11 +14,12 @@ case class LegacyEssentialFields(first: String, last: String, date: String, zone
 
 object LegacyDataManager {
     val driverClassName ="org.sqlite.JDBC"
-    val url: String = s"jdbc:sqlite:${InitApp.userHome}/tmp/charts/charts.db" //TODO : change for real db
+    def url(file: String = InitApp.legacyDBFile): String = s"jdbc:sqlite:$file"
+
     Class.forName(driverClassName)
 
     def getStatement: Try[Statement] = {
-        Try(DriverManager.getConnection(url)).map(_.createStatement())
+        Try(DriverManager.getConnection(url())).map(_.createStatement())
     }
 
     def getTableNamesFromDb : Seq[String] = {

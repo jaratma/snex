@@ -10,7 +10,7 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
 import eideia.models.{Admin1, Admin2, Location, UserData}
 import eideia.userdata.{LegacyEssentialFields, LocationTriplet}
-import eideia.InitApp. userConfPath
+import eideia.InitApp.userConfPath
 
 object AtlasQuery {
     implicit val executor =  ExecutionContext.fromExecutor(new ForkJoinPool(2))
@@ -25,14 +25,16 @@ object AtlasQuery {
     val driver = "org.sqlite.JDBC"
     val customDb = Database.forURL(url, driver)
 
-    def initCustomDB = {
+    def initCustomDB(implicit state: State) = {
         val tables : Future[Vector[MTable]] = customDb.run(MTable.getTables)
         val res = Await.result(tables,Duration.Inf)
         if (!res.toList.map(_.name.name).contains("cities")) {
             val queryCustom = TableQuery[LocationTable]
             val schema = queryCustom.schema.create
             Await.result(customDb.run(DBIO.seq(schema)), 2.seconds)
-        }
+            state.logger.info("Created custom location database.")
+        } else
+            state.logger.info("Custom location database exists. Skipping.")
     }
 
     def insertCustomLocation(loc: Location): Int = {

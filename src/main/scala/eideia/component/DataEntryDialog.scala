@@ -220,7 +220,7 @@ object DataEntryDialog {
         result match {
             case Some(BareData(f, l, t, d, p)) =>
                 val ud = UserData(f,l,t,d.toString,p.name,p.country,p.admin1,p.admin2)
-                    userExplorer.inserUser(ud)
+                    userExplorer.insertUser(ud)
             case Some(_) =>
             case None => println("Dialog returned: None")
         }

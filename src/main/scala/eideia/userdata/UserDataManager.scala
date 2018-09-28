@@ -1,14 +1,13 @@
 package eideia.userdata
 
 import java.util.concurrent.ForkJoinPool
+
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.languageFeature.existentials
-
 import slick.jdbc.SQLiteProfile.api._
 import slick.jdbc.meta.MTable
-
-import eideia.{State, DateManager => DM}
+import eideia.{InitApp, State, DateManager => DM}
 import eideia.models.UserData
 import eideia.InitApp.userConfPath
 import eideia.atlas.AtlasQuery
@@ -19,6 +18,9 @@ object UserDataManager {
     implicit val executor =  ExecutionContext.fromExecutor(new ForkJoinPool(20))
     implicit lazy val existentials: existentials = language.existentials
 
+    val url = s"jdbc:sqlite:$userConfPath/collection.db"
+    val driver = "org.sqlite.JDBC"
+    val db = Database.forURL(url, driver)
 
     class UserBase(name: String) {
         class UserDataTable(tag: Tag) extends Table[UserData](tag, s"$name") {
@@ -42,10 +44,20 @@ object UserDataManager {
         TableQuery[base.UserDataTable]
     }
 
-    val url = s"jdbc:sqlite:$userConfPath/collection.db"
-    val driver = "org.sqlite.JDBC"
-    val db = Database.forURL(url, driver)
-    //AsyncExecutor("user", numThreads=10, queueSize=1000)
+    def checkCollectionDB: Boolean = {
+        val tables : Future[Vector[MTable]] = db.run(MTable.getTables)
+        val res = Await.result(tables,Duration.Inf)
+        val defaultDb = InitApp.defaultDatabase
+        res.toList.map(_.name.name).contains(defaultDb)
+    }
+
+    def initCollectionDB(defaultDb: String = InitApp.defaultDatabase) = {
+        val queryCustom = queryForThisTable(defaultDb)
+        val schema = queryCustom.schema.create
+        Await.result(db.run(DBIO.seq(schema)), 2.seconds)
+        state.logger.info("Created collection database.")
+    }
+
 
     def exec[T](program: DBIO[T]): T = Await.result(db.run(program), 2 seconds)
 
@@ -78,7 +90,7 @@ object UserDataManager {
         res.toList.map(_.name.name)
     }
 
-    def populateUserDataWithLegacy(table: String) = {
+    def populateUserDataWithLegacy(table: String): Option[Int] = {
         val legacyColl: Seq[LegacyEssentialFields] = LegacyDataManager.getEssentialFieldsFromLegacyData(table)
         val newUserData: Seq[UserData] = legacyColl.map(convertLegacyData)
         val messages = queryForThisTable(table)
