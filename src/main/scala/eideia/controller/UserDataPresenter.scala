@@ -33,13 +33,15 @@ class UserDataPresenter(choice: ChoiceBox[String],
     explorer.selectionModel().selectFirst()
     explorer.applyCss()
     explorer.selectionModel().selectedItemProperty().onChange( (_,_,nval) => {
-        if (nval != null && !deleter.selected.value) {
-            val table = choice.selectionModel().selectedItemProperty().value
-            state.currentRegister.value = Register(table, nval.id)
-            state.currentUserData.value = UserDataManager.loadRegisterById(table,nval.id).get
-            state.infoLabels.update(state.currentUserData.value)
-        } else {
-            deleteUser(state.currentUserData.value.id)
+        if (nval != null) {
+            if (!deleter.selected.value) {
+                val table = choice.selectionModel().selectedItemProperty().value
+                state.currentRegister.value = Register(table, nval.id)
+                state.currentUserData.value = UserDataManager.loadRegisterById(table, nval.id).get
+                state.infoLabels.update(state.currentUserData.value)
+            } else {
+                deleteUser(state.currentUserData.value.id)
+            }
         }
     })
 
@@ -55,7 +57,8 @@ class UserDataPresenter(choice: ChoiceBox[String],
         val r = UserDataManager.updateUserDate(ud,table,uid)
         state.logger.info(s"updated $r register(s)")
         refreshExplorer()
-        val p = rows.find(p => p.name.value == ud.first).head
+        val name = s"${ud.last}, ${ud.first}"
+        val p = rows.find(p => p.name.value == name).head
         explorer.selectionModel().select(p)
     }
 
@@ -84,7 +87,7 @@ class UserDataPresenter(choice: ChoiceBox[String],
                 case Some(ButtonType.OK) =>
                     val r = UserDataManager.deleteUserData(reg.id, table)
                     state.logger.info(s"Deleted $r ${reg.name.value}")
-                    deleter.selected = false
+                    deleter.selected.value = false
                     refreshExplorer()
                 case _ => state.logger.info("Delete cancelled.")
             }

@@ -32,7 +32,7 @@ object SnexApp { //} extends App{
     }
 
     def displaySearchLocation(place: String, country: String) = {
-        val locs =  QG.parseQuery(QG.sendQuery(place,country))
+        val locs =  QG.parseQuery(QG.sendQuery(place,country).right.get)
         println(locs(0))
     }
     //displaySearchLocation("Gurtnellen", "CH")

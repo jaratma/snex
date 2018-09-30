@@ -67,5 +67,5 @@ object InitApp {
 
     AtlasQuery.initCustomDB
     //state.logger.info(s"Collection db exists: $existsCollectionDB")
-    state.logger.info(s"Legacy db exists: $existsLegacyDB")
+    //state.logger.info(s"Legacy db exists: $existsLegacyDB")
 }

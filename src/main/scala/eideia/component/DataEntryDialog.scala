@@ -19,7 +19,7 @@ import eideia.controller.{DataEntryPresenter, UserDataPresenter}
 import eideia.models.{Location, Place, UserData}
 import eideia.InitApp.state
 import eideia.atlas.AtlasQuery
-import eideia.PrefixSelectionCustomizer
+import eideia.{InitApp, PrefixSelectionCustomizer}
 
 case class BareData(first: String, last: String, tags: String, date: ZonedDateTime, place: Location)
 
@@ -61,7 +61,6 @@ object DataEntryDialog {
                 text = ""
                 cellValueFactory = { _.value.geo}
             }
-
         )
         columnResizePolicy = TableView.ConstrainedResizePolicy
         visible = false
@@ -146,6 +145,16 @@ object DataEntryDialog {
 
     val presenter = new DataEntryPresenter(grid,searchField,countryChoiceBox,locExplorer,place,labelForLoc)
 
+    val dialog = new Dialog[BareData] {
+        initOwner(InitApp.stage.value)
+        title = "Entradas"
+        width = 200
+        resizable = true
+    }
+    val loginButtonType = new ButtonType("Aceptar", ButtonData.OKDone)
+    dialog.dialogPane().buttonTypes = Seq(loginButtonType, ButtonType.Cancel)
+    dialog.dialogPane().content = grid
+
     def onEditDataEntryDialog(stage: PrimaryStage, userExplorer: UserDataPresenter): Unit = {
         val currentUser: UserData = state.currentUserData.value
         firstName.text = currentUser.first
@@ -161,16 +170,6 @@ object DataEntryDialog {
         place.value = AtlasQuery.getLocationFromUserData(currentUser).getOrElse(state.currentLocation.value)
         labelForLoc.text.value = place.value.toString
 
-        val dialog = new Dialog[BareData] {
-            initOwner(stage)
-            title = "Entradas"
-            width = 200
-            resizable = true
-        }
-
-        val loginButtonType = new ButtonType("Aceptar", ButtonData.OKDone)
-        dialog.dialogPane().buttonTypes = Seq(loginButtonType, ButtonType.Cancel)
-        dialog.dialogPane().content = grid
         dialog.resultConverter = dialogButton =>
             if (dialogButton == loginButtonType) {
                 val lt = LocalTime.of(hfactory.value.value,mfactory.value.value)
@@ -196,16 +195,6 @@ object DataEntryDialog {
         val hfactory: jfxSpinnerValueFactory[Int] = hourPicker.valueFactory.value.asInstanceOf[jfxSpinnerValueFactory[Int]]
         val mfactory: jfxSpinnerValueFactory[Int] = minutePicker.valueFactory.value.asInstanceOf[jfxSpinnerValueFactory[Int]]
 
-        val dialog = new Dialog[BareData] {
-            initOwner(stage)
-            title = "Entradas"
-            width = 200
-            resizable = true
-        }
-
-        val loginButtonType = new ButtonType("Aceptar", ButtonData.OKDone)
-        dialog.dialogPane().buttonTypes = Seq(loginButtonType, ButtonType.Cancel)
-        dialog.dialogPane().content = grid
         dialog.resultConverter = dialogButton =>
             if (dialogButton == loginButtonType) {
                 val lt = LocalTime.of(hfactory.value.value,mfactory.value.value)
@@ -220,10 +209,9 @@ object DataEntryDialog {
         result match {
             case Some(BareData(f, l, t, d, p)) =>
                 val ud = UserData(f,l,t,d.toString,p.name,p.country,p.admin1,p.admin2)
-                    userExplorer.insertUser(ud)
+                userExplorer.insertUser(ud)
             case Some(_) =>
             case None => println("Dialog returned: None")
         }
-
     }
 }

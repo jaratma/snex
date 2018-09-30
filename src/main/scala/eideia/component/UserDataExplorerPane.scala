@@ -18,7 +18,7 @@ object UserDataExplorerPane {
     lazy val config = InitApp.config
 
 
-    val spacer: Pane = new Pane {
+    def spacer: Pane = new Pane {
         minWidth = 10
         hgrow = Priority.Always
     }
@@ -66,6 +66,18 @@ object UserDataExplorerPane {
         onAction = handle(DataEntryDialog.onEditDataEntryDialog(InitApp.stage.value, presenter))
     }
 
+    val placeButton: Button = new Button {
+        graphic = new FontIcon {
+            setIconLiteral("gmi-place")
+            iconSizeProperty.value = 18
+            iconColorProperty.value = Color.SlateGray
+        }
+        tooltip = new Tooltip("Lugares")
+        style = "-fx-background-color: #e3e4e4; -fx-background-radius: 5; -fx-background-insets: 0, 0"
+        //onAction = handle(CustomLocDialog.onCustomLocEntryDialog(InitApp.stage.value))
+        onAction = handle(SearchLocationHelper.onCustomLocEntryDialog(InitApp.stage.value))
+    }
+
     val addButton: Button = new Button {
         graphic = new FontIcon {
             setIconLiteral("gmi-add")
@@ -85,7 +97,7 @@ object UserDataExplorerPane {
 
     val settingsMenu = new ContextMenu {
         items +=  new MenuItem("Convertir datos v.1") {
-            //onAction = presenter.convertLegacyData
+        onAction = handle(LegacyConverterDialog.onConverterInvoked)
         }
     }
 
@@ -143,6 +155,7 @@ object UserDataExplorerPane {
         style = "-fx-background-color: #e3e4e4; -fx-background-radius: 5; -fx-background-insets: 0, 0"
         onAction = ev => presenter.clearAction(ev)
     }
+
     val searchBox = new HBox {
             hgrow = Priority.Always
             spacing = 4
@@ -154,6 +167,7 @@ object UserDataExplorerPane {
         }
 
     /* Labels card */
+
     val card = new VBox {
         padding = Insets(6)
         spacing = 4
@@ -173,7 +187,7 @@ object UserDataExplorerPane {
             new HBox {
                 alignment = Pos.BaselineRight
                 spacing = 4
-                children = Seq(addButton,editButton,deleteButton)
+                children = Seq(placeButton,spacer,addButton,editButton,deleteButton)
             }
         )
     }

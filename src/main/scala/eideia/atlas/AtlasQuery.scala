@@ -42,6 +42,12 @@ object AtlasQuery {
         Await.result(customDb.run(queryCustom += loc), 2.seconds)
     }
 
+    def deleteCustomLocation(loc: Location): Int = {
+        val queryCustom = TableQuery[LocationTable]
+        //println(loc.id)
+        Await.result(customDb.run(queryCustom.filter(_.id === loc.id).delete), 2.seconds)
+    }
+
     def queryTimezone(timezone: String) : Seq[AtlasQuery.LocationTable#TableElementType] = {
         val query = messages.filter(_.timezone === timezone)
         exec(query.result)
@@ -109,7 +115,7 @@ object AtlasQuery {
     }
 
     def getLocationFromCityAndCountryCode(city: String, code: String): Seq[AtlasQuery.LocationTable#TableElementType]= {
-        val query = messages.filter(r => (r.name like s"${city}%")  && r.country === code).sortBy(r => r.name)
+        val query = messages.filter(r => (r.name like s"$city%")  && r.country === code).sortBy(r => r.name)
         Await.result(locDb.run(query.result), 5.seconds) ++ Await.result(customDb.run(query.result), 5.seconds)
     }
 
@@ -131,14 +137,23 @@ object AtlasQuery {
         val zone = DateManager.parseDateString(date).getZone.toString
         val query = messages.filter(r => (r.name like city)  && r.country === country && r.timezone ===  zone)
         (Await.result(customDb.run(query.result), 3.seconds) ++ Await.result(locDb.run(query.result), 5.seconds)).headOption
-        //exec(query.result.headOption)
     }
 
     // search location in both databases
     def searchLocation(city: String): Seq[Location] = {
-        println("enter search")
         val query = messages.filter(r => r.name like city)
         Await.result(locDb.run(query.result), 5.seconds) ++ Await.result(customDb.run(query.result), 3.seconds)
+    }
+
+    def searchPresetLocation(city: String, country: String, admin: String): Option[Location] = {
+        val query = messages.filter(r => r.name === city && r.country === country && r.admin1 === admin)
+        Await.result(locDb.run(query.result), 5.seconds).headOption
+    }
+
+    def listCustomLocation(): Seq[Location] = {
+        val query = messages.filter(_.name =!= "" )
+        val cus = Await.result(customDb.run(messages.result), 3.seconds)
+        cus
     }
 
     class LocationTable(tag: Tag)

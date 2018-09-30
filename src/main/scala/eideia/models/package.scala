@@ -53,10 +53,18 @@ package object models {
         override def toString: String = s"Place: ${name.value}, ${id}"
     }
 
+    class CustomPlace(name_ : String, country_ : String, admin_ : String, geo_ : String ,val id: Long) {
+        val name = new StringProperty(this, "name", name_)
+        val country = new StringProperty(this, "country", country_)
+        val admin = new StringProperty(this, "admin", admin_)
+        val geo = new StringProperty(this,"geo", geo_)
+        override def toString: String = s"Place: ${name.value}, $id"
+    }
+
     case class Register(table: String, rid: Long)
 
     case class InfoLabels(var userData: UserData, localnow: String) {
-        val firstNameLabel = new StringProperty(this, "fist-name-label", userData.first)
+        val firstNameLabel = new StringProperty(this, "fist-name-label", userData.first+" ")
         val lastNameLabel = new StringProperty(this, "last-name-label", userData.last)
         private val location = AtlasQuery.getLocationFromUserData(userData).get
         val geoLabel = new StringProperty(this, "geoLabel", Utils.formatGeoData(location))
@@ -64,7 +72,7 @@ package object models {
 
         def update(data: UserData) = {
             userData = data
-            firstNameLabel.value = data.first
+            firstNameLabel.value = data.first+" "
             lastNameLabel.value = data.last
             val location = AtlasQuery.getLocationFromUserData(data).get
             geoLabel.value = Utils.formatGeoData(location)

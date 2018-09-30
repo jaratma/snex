@@ -6,11 +6,11 @@ import eideia.models.Location
 
 
 object QueryGeonames {
-
-    def sendQuery(loc: String, countCode: String) : String = {
+    // TODO: make username a config option
+    def sendQuery(loc: String, countCode: String) : Either[String,String] = {
         implicit val backend = HttpURLConnectionBackend()
-        val uri: Uri =uri"http://api.geonames.org/search?q=$loc&country=$countCode&featureCode=PPL&style=FULL&username=jaratma"
-        sttp.get(uri).send().body.right.get
+        val uri: Uri = uri"http://api.geonames.org/search?name=$loc&country=$countCode&featureClass=P&style=FULL&maxRows=20&username=jaratma"
+        sttp.get(uri).send().body//.right.get
     }
 
     def parseQuery(response: String) : Seq[Location] = {

@@ -102,7 +102,7 @@ object UserDataManager {
             val rows = Await.result(db.run(sqlu"DELETE FROM #$table"), Duration.Inf)
         }
         val rows: Option[Int] = Await.result(db.run(messages ++= newUserData), Duration.Inf)
-        println(s"Inserted ${rows.get} rows.")
+        state.logger.info(s"Inserted ${rows.get} rows.")
         rows
     }
 

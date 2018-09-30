@@ -42,12 +42,16 @@ class DataEntryPresenter(grid: GridPane,
     }
 
     def fillColumns(text: String,code: String): Seq[Location] = {
+        println(text, code)
         val columns = AtlasQuery.getLocationFromCityAndCountryCode(text,code)
+        println(columns)
         columns match {
-            case seq if seq.isEmpty =>
-                val res = QueryGeonames.sendQuery(text,code)
+            case Vector() =>
                 externLocs.clear()
-                externLocs ++= QueryGeonames.parseQuery(res)
+                QueryGeonames.sendQuery(text,code) match {
+                    case Right(res) => externLocs ++= QueryGeonames.parseQuery(res)
+                    case Left(err) => InitApp.state.logger.info("No response")
+                }
                 externLocs
             case _ => columns
         }
@@ -63,7 +67,6 @@ class DataEntryPresenter(grid: GridPane,
             val geo: String = Utils.formatJustLongAndLat(l)
             rows += new Place(l.name, admin, geo, l.id)
         }
-
         locExplorer.items = rows
         locExplorer.visible = true
     }
