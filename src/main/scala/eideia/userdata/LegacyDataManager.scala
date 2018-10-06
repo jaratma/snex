@@ -10,7 +10,7 @@ import scala.util.{Failure, Success, Try}
 import scala.collection.mutable.ArrayBuffer
 
 case class LocationTriplet(city: String, region: String, country: String)
-case class LegacyEssentialFields(first: String, last: String, date: String, zone: String, city: String, country: String)
+case class LegacyEssentialFields(first: String, last: String, date: String, zone: String, city: String, country: String, lat: Double, lng: Double)
 
 object LegacyDataManager {
     val driverClassName ="org.sqlite.JDBC"
@@ -114,7 +114,7 @@ object LegacyDataManager {
         val arybuf = ArrayBuffer[LegacyEssentialFields]()
         val stmt: Try[Statement] = getStatement
         assert(stmt.isSuccess)
-        val sql = s"select first, last, date, city, region, country, zone from $table"
+        val sql = s"select first, last, date, city, region, country, zone, latitud, longitud from $table"
         val rs: ResultSet = stmt.get.executeQuery(sql)
         while (rs.next) {
             val first = rs.getString("first")
@@ -123,8 +123,10 @@ object LegacyDataManager {
             val city = rs.getString("city")
             val country = rs.getString("country")
             val zone = rs.getString("zone")
+            val lat = rs.getDouble("latitud")
+            val lng = rs.getDouble("longitud")
             val countryCode = AtlasQuery.getCountryCode(country)
-            arybuf += LegacyEssentialFields(first, last, date, zone, city, countryCode)
+            arybuf += LegacyEssentialFields(first, last, date, zone, city, countryCode,lat,lng)
         }
         arybuf
     }

@@ -10,15 +10,14 @@ object Utils {
         s"${zdt.getDayOfMonth}/${zdt.getMonthValue}/${zdt.getYear} ${zdt.getHour}:${zdt.getMinute}h. ${zdt.getOffset}"
     }
 
-    def formatJustLongAndLat(loc: Location): String = {
-        val lat = loc.latitude
-        val lng = loc.longitude
+    def formatJustLongAndLat(loc: Location): String = formatLongAndLat(loc.latitude,loc.longitude)
+
+    def formatLongAndLat(lat: Double, lng: Double): String = {
         val latlet = Map(true -> "N", false -> "S")(lat > 0)
         val lnglet = Map(true -> "E", false -> "W")(lng > 0)
         val lngmin = math.abs(math.round((lng - lng.toInt) * 60))
         val latmin = math.abs(math.round((lat - lat.toInt) * 60))
         s"${math.abs(lng.toInt)}$lnglet$lngmin ${math.abs(lat.toInt)}$latlet$latmin"
-
     }
 
     def formatGeoData(loc: Location): String = {

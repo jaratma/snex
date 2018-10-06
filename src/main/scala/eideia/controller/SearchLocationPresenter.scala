@@ -20,6 +20,7 @@ class SearchLocationPresenter(countries: ChoiceBox[String],
     val externLocs = new ObservableBuffer[Location]
 
     val selectedGeoLocation = new ObjectProperty[Location](this,"selectedGeoLocation")
+    val newGeoLocation = new ObjectProperty[Location](this,"selectedGeoLocation")
 
     countries.items = ObservableBuffer[String](countryNames)
     countries.selectionModel().select(initialCountry)
@@ -32,10 +33,11 @@ class SearchLocationPresenter(countries: ChoiceBox[String],
             val location: Location = externLocs.find(p => p.name == nval.name.value && p.admin1 == admin).get
             AtlasQuery.searchPresetLocation(location.name, location.country, location.admin1) match {
                 case Some(_) =>
-                    warningLabel.text() = "Esta localidad ya existe"
+                    warningLabel.text() = "Usando localidad existente"
+                    selectedGeoLocation.value = location
                 case None =>
                     warningLabel.text() = ""
-                    selectedGeoLocation.value = location
+                    newGeoLocation.value = location
             }
         }
     })

@@ -67,6 +67,7 @@ class CustomLocPresenter(countries: ChoiceBox[String],
             }
         }
     )
+
     deleteButton.onAction = handle{
         val r = AtlasQuery.deleteCustomLocation(selectedCustomLocation.value)
         fillCustomExplorer()

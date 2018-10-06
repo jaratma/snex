@@ -1,6 +1,5 @@
 package eideia.component
 
-import eideia.atlas.AtlasQuery
 import scalafx.Includes._
 import org.kordamp.ikonli.javafx.FontIcon
 import scalafx.application.JFXApp.PrimaryStage
@@ -11,8 +10,10 @@ import scalafx.scene.control.ButtonBar.ButtonData
 import scalafx.scene.layout.{ColumnConstraints, GridPane, HBox}
 import scalafx.scene.paint.Color
 import eideia.controller.SearchLocationPresenter
-import eideia.{InitApp, PrefixSelectionCustomizer}
+import eideia.{InitApp, PrefixSelectionCustomizer, Utils}
 import eideia.models.{Location, Place}
+import eideia.userdata.LegacyEssentialFields
+import eideia.atlas.{AtlasQuery, CountryResolver}
 
 case class Loc(loc: Location)
 
@@ -72,6 +73,7 @@ object SearchLocationHelper {
     }
 
     val warningLabel = new Label("")
+    val refPlace = new Label("")
 
 
     val grid: GridPane = new GridPane() {
@@ -83,10 +85,11 @@ object SearchLocationHelper {
         val colCons2 = new ColumnConstraints(200,280, 300)
 
         columnConstraints ++= List(colCons1,colCons2)
-        add(new Label("Localidad:"), 0,0)
-        add(locBox,1,0)
-        add(geoLocResults,0,1,2,1)
-        add(warningLabel,1,2)
+        add(refPlace,0,0,2,1)
+        add(new Label("Localidad:"), 0,1)
+        add(locBox,1,1)
+        add(geoLocResults,0,2,2,1)
+        add(warningLabel,1,3)
     }
 
     PrefixSelectionCustomizer.customize(countryChoiceBox)
@@ -99,25 +102,35 @@ object SearchLocationHelper {
         resizable = true
     }
     val locButtonType = new ButtonType("Aceptar", ButtonData.OKDone)
-    dialog.dialogPane().buttonTypes = Seq(locButtonType)
+    dialog.dialogPane().buttonTypes = Seq(ButtonType.Cancel,locButtonType)
     dialog.dialogPane().content = grid
 
 
-    def onCustomLocEntryDialog(stage: PrimaryStage): Unit = {
+    def onSearchHelperDialog(stage: PrimaryStage, legacy: LegacyEssentialFields): Location = {
+        presenter.rows.clear()
+        geoLocResults.items = presenter.rows
+        val country = CountryResolver.mapCodeToLocalizedCountry(InitApp.config.country)(legacy.country.take(2).toUpperCase)
+        val geo = Utils.formatLongAndLat(legacy.lat, legacy.lng)
+        refPlace.text.value = s"Ref.: ${legacy.city} $country $geo ${legacy.zone}"
         dialog.resultConverter = dialogButton =>
             if (dialogButton == locButtonType) {
-                val loc: Location = presenter.selectedGeoLocation.value
-                //AtlasQuery.insertCustomLocation(selectedGeoLocation.value)
-                Loc(loc)
+                val selloc: Location = presenter.selectedGeoLocation.value
+                val newLoc: Location = presenter.newGeoLocation.value
+                val loc = Option[Location](newLoc) match {
+                    case Some(newloc) =>
+                        AtlasQuery.insertCustomLocation(newloc)
+                        Loc(newloc)
+                    case None => Loc(selloc)
+                    }
+                loc
             }
             else null
 
         val result = dialog.showAndWait()
 
         result match {
-            case Some(Loc(loc)) => println(loc)
-            case Some(_) =>
-           case None => println("None selected")
+            case Some(Loc(loc)) => loc
+            case _ => presenter.selectedGeoLocation.value
         }
     }
 

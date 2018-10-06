@@ -8,17 +8,43 @@ import scalafx.scene.control._
 import scalafx.scene.layout.{ColumnConstraints, GridPane}
 import eideia.InitApp.state.logger
 import eideia.controller.LegacyConverterPresenter
+import scalafx.beans.property.ObjectProperty
 import scalafx.geometry.Insets
+import scalafx.scene.text.{Text, TextFlow}
 
 case class Bare(source: String, destiny: String)
 
 object LegacyConverterDialog {
+
+    val mainTableChoice = new ObjectProperty[ChoiceBox[String]](this, "maintables")
 
     val tableChoiceBox: ChoiceBox[String] = new ChoiceBox[String]
 
     val tableNameField: TextField = new TextField {
         text.onChange { (_, _, nv) =>
             convertButton.disable = nv.trim.isEmpty || !text().matches("[a-zA-Z][_a-zA-Z0-9]{2,25}")}
+    }
+
+    val convertButton = new Button("Convertir"){
+        disable = true
+        onAction = handle {
+            val dest: String = presenter.convert(tableChoiceBox.selectionModel().selectedItemProperty.value, tableNameField.text())
+            mainTableChoice.value.items() += dest
+        }
+    }
+
+    val flow: TextFlow = new TextFlow {
+        padding = Insets(3)
+    }
+
+    val spane: ScrollPane = new ScrollPane {
+        content = flow
+        vvalue = 1.0
+        minHeight = 200
+    }
+
+    val recover = new Hyperlink("Recuperar") {
+        onAction = handle { presenter.checkDestinyCollecion(tableNameField.text.value) }
     }
 
     val grid: GridPane = new GridPane {
@@ -31,20 +57,22 @@ object LegacyConverterDialog {
 
         columnConstraints ++= List(colCons1, colCons2)
 
-
         add(new Label("Origen:"), 0, 0)
         add(tableChoiceBox, 1, 0)
         add(new Label("Destino:"), 0, 1)
         add(tableNameField, 1, 1)
+        add(convertButton,0,2)
+        add(spane ,0,3,2,1)
+        add(recover ,0,4,2,1)
     }
 
-    private val presenter = new LegacyConverterPresenter(tableChoiceBox) //userExplorer,searchField,deleteButton)
+    private val presenter = new LegacyConverterPresenter(tableChoiceBox, flow, spane)
 
-    def onConverterInvoked(): Unit = {
+    def onConverterInvoked(mainchoicer: ChoiceBox[String]): Unit = {
         if (InitApp.existsLegacyDB)
+            mainTableChoice.value = mainchoicer
             convertDialog()
     }
-
 
     val dialog = new Dialog[Bare] {
         initOwner(InitApp.stage.value)
@@ -53,31 +81,14 @@ object LegacyConverterDialog {
         resizable = true
     }
 
-    val convertButtonType = new ButtonType("Convertir", ButtonData.OKDone)
     val closeButtonType = new ButtonType("Cerrar", ButtonData.Finish)
-    dialog.dialogPane().buttonTypes = Seq(convertButtonType, closeButtonType)
-
-    val convertButton = dialog.dialogPane().lookupButton(convertButtonType)
-    convertButton.disable = true
-
-
+    dialog.dialogPane().buttonTypes = Seq(closeButtonType)
     dialog.dialogPane().content = grid
-    dialog.resultConverter = {
-            case db if db == closeButtonType => Bare("Nothing","to show")
-            case db if db == convertButtonType => Bare(tableChoiceBox.selectionModel().selectedItemProperty.value, tableNameField.text() )
-            case _ => null
-        }
 
-    def convertDialog(stage: PrimaryStage = InitApp.stage.value): Unit = {
-
-        val result = dialog.showAndWait()
-
-        result match {
-            case Some(Bare(s,d)) => presenter.convert(s,d)
-            case Some(_) =>
-            case None => logger.info("Dialog returned: None")
-        }
-
+    def convertDialog(stage: PrimaryStage = InitApp.stage.value): Unit =  {
+        dialog.showAndWait()
+        flow.children.clear()
+        tableNameField.text() = ""
     }
 
 }

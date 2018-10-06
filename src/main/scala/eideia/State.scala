@@ -34,6 +34,12 @@ class State(val defaultLocation: Location) {
         )
     }
 
+    def setNow = {
+        currentUserData.value = setUserFromHereAndNow
+        currentChart.value = setNowChart
+        infoLabels.update(currentUserData.value)
+    }
+
     val infoLabels = InfoLabels(currentUserData(), localnow.value.toString)
     val currentRegister = new ObjectProperty[Register](this, "currentRegister", Register(currentDatabase.value, 0L)) {
         onChange { (_, _, nval) => {

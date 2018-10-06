@@ -1,14 +1,15 @@
 package eideia.component
 
+import java.text.SimpleDateFormat
 import java.time._
+import java.util.Date
 
 import javafx.scene.control.{SpinnerValueFactory => jfxSpinnerValueFactory}
-import scalafx.geometry.Pos
+import scalafx.geometry.{HPos, Insets, Pos}
 import scalafx.scene.layout.HBox
 import scalafx.Includes._
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.beans.property.ObjectProperty
-import scalafx.geometry.Insets
 import scalafx.scene.control.ButtonBar.ButtonData
 import scalafx.scene.control._
 import scalafx.scene.layout.{ColumnConstraints, GridPane}
@@ -20,6 +21,7 @@ import eideia.models.{Location, Place, UserData}
 import eideia.InitApp.state
 import eideia.atlas.AtlasQuery
 import eideia.{InitApp, PrefixSelectionCustomizer}
+import scalafx.util.converter.TimeStringConverter
 
 case class BareData(first: String, last: String, tags: String, date: ZonedDateTime, place: Location)
 
@@ -44,6 +46,23 @@ object DataEntryDialog {
         prefWidth = 70
         maxWidth = 70
         editor.value.alignment = Pos.BaselineRight
+    }
+
+    val secondPicker = new Spinner(0,59, 0) {
+        editable = true
+        prefWidth = 70
+        maxWidth = 70
+        editor.value.alignment = Pos.BaselineRight
+    }
+
+
+    def timeField = new TextField {
+        val timeFormat = new SimpleDateFormat("HH:mm:ss")
+        val converter = new TimeStringConverter("HH:mm:ss")
+        textFormatter = new TextFormatter(converter)
+        val now = LocalTime.now
+        text = s"${now.getHour}:${now.getMinute}:${now.getSecond}"
+        alignment = Pos.BaselineRight
     }
 
     val locExplorer: TableView[Place] = new TableView[Place] {
@@ -109,7 +128,9 @@ object DataEntryDialog {
                 hourPicker,
                 new Label("h."),
                 minutePicker,
-                new Label("m.")
+                new Label("m."),
+                secondPicker,
+                new Label("s."),
             )
         }
 
@@ -139,6 +160,7 @@ object DataEntryDialog {
         add(new Label("Localidad:"), 0,6)
         add(locBox,1,6)
         add(locExplorer,0,7,2,1)
+        add(timeField,0,8)
     }
 
     PrefixSelectionCustomizer.customize(countryChoiceBox)
@@ -167,12 +189,14 @@ object DataEntryDialog {
         hfactory.value_=( datetime.toLocalTime.getHour)
         val mfactory: jfxSpinnerValueFactory[Int] = minutePicker.valueFactory.value.asInstanceOf[jfxSpinnerValueFactory[Int]]
         mfactory.value_=(datetime.toLocalTime.getMinute)
+        val sfactory: jfxSpinnerValueFactory[Int] = secondPicker.valueFactory.value.asInstanceOf[jfxSpinnerValueFactory[Int]]
+        sfactory.value_=(datetime.toLocalTime.getSecond)
         place.value = AtlasQuery.getLocationFromUserData(currentUser).getOrElse(state.currentLocation.value)
         labelForLoc.text.value = place.value.toString
 
         dialog.resultConverter = dialogButton =>
             if (dialogButton == loginButtonType) {
-                val lt = LocalTime.of(hfactory.value.value,mfactory.value.value)
+                val lt = LocalTime.of(hfactory.value.value,mfactory.value.value,sfactory.value.value)
                 val localDateTime = LocalDateTime.of(datePicker.value(),lt)
                 val zdt = ZonedDateTime.of(localDateTime, ZoneId.of(place.value.timezone))
                 BareData(firstName.text(), lastName.text(), tags.text(), zdt, place.value)
@@ -185,8 +209,7 @@ object DataEntryDialog {
             case Some(BareData(f, l, t, d, p)) =>
                 val ud = UserData(f,l,t,d.toString,p.name,p.country,p.admin1,p.admin2)
                 userExplorer.updateUser(ud)
-            case Some(_) =>
-            case None => println("Dialog returned: None")
+            case _ => println("Dialog returned: None")
         }
 
     }
@@ -194,10 +217,12 @@ object DataEntryDialog {
     def onNewDataEntryDialog(stage: PrimaryStage, userExplorer: UserDataPresenter): Unit = {
         val hfactory: jfxSpinnerValueFactory[Int] = hourPicker.valueFactory.value.asInstanceOf[jfxSpinnerValueFactory[Int]]
         val mfactory: jfxSpinnerValueFactory[Int] = minutePicker.valueFactory.value.asInstanceOf[jfxSpinnerValueFactory[Int]]
+        val sfactory: jfxSpinnerValueFactory[Int] = secondPicker.valueFactory.value.asInstanceOf[jfxSpinnerValueFactory[Int]]
+        firstName.text.value = "sin nombre"
 
         dialog.resultConverter = dialogButton =>
             if (dialogButton == loginButtonType) {
-                val lt = LocalTime.of(hfactory.value.value,mfactory.value.value)
+                val lt = LocalTime.of(hfactory.value.value,mfactory.value.value,sfactory.value.value)
                 val localDateTime = LocalDateTime.of(datePicker.value(),lt)
                 val zdt = ZonedDateTime.of(localDateTime, ZoneId.of(place.value.timezone))
                 BareData(firstName.text(), lastName.text(), tags.text(), zdt, place.value)
@@ -210,8 +235,8 @@ object DataEntryDialog {
             case Some(BareData(f, l, t, d, p)) =>
                 val ud = UserData(f,l,t,d.toString,p.name,p.country,p.admin1,p.admin2)
                 userExplorer.insertUser(ud)
-            case Some(_) =>
-            case None => println("Dialog returned: None")
+            case _ =>
+                println("Dialog returned: None")
         }
     }
 }

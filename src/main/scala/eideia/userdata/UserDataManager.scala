@@ -8,10 +8,12 @@ import scala.languageFeature.existentials
 import slick.jdbc.SQLiteProfile.api._
 import slick.jdbc.meta.MTable
 import eideia.{InitApp, State, DateManager => DM}
-import eideia.models.UserData
+import eideia.models.{Person, UserData}
 import eideia.InitApp.userConfPath
 import eideia.atlas.AtlasQuery
 import eideia.InitApp.state
+
+import scala.util.{Failure, Success, Try}
 
 
 object UserDataManager {
@@ -34,6 +36,8 @@ object UserDataManager {
                 def admin2 = column[String]("admin2")
                 def id = column[Long]("rowid", O.PrimaryKey, O.AutoInc)
 
+                def ixname = index(s"${name}ix",(first,last), unique=true)
+
                 def * =
                     (first, last, tags, date, city, country, admin1, admin2,id).mapTo[UserData]
         }
@@ -55,9 +59,31 @@ object UserDataManager {
         val queryCustom = queryForThisTable(defaultDb)
         val schema = queryCustom.schema.create
         Await.result(db.run(DBIO.seq(schema)), 2.seconds)
-        state.logger.info("Created collection database.")
+        state.logger.info(s"Created $defaultDb collection.")
     }
 
+    def createNewCollection(table: String) = initCollectionDB(table)
+
+    def dropCollection(table: String) = {
+        val queryCustom = queryForThisTable(table)
+        val schema = queryCustom.schema.drop
+        Await.result(db.run(DBIO.seq(schema)), 2.seconds)
+        state.logger.info(s"Deleted $table collection.")
+    }
+
+    def copyCollection(source: String, destiny :String) = {
+        val sourceQuery = queryForThisTable(source)
+        val destQuery = queryForThisTable(destiny)
+        if (!doesTableExists(destiny)) {
+            val schema = destQuery.schema.create
+            Await.result(db.run(DBIO.seq(schema)), 2.seconds)
+        } else {
+            val rows = Await.result(db.run(sqlu"DELETE FROM #$destiny"), Duration.Inf)
+        }
+        val col: Seq[UserData] = Await.result(db.run(sourceQuery.result), 2.seconds)
+        Await.result(db.run(destQuery ++= col), 2.seconds)
+        state.logger.info(s"Data copied from $source to $destiny.")
+    }
 
     def exec[T](program: DBIO[T]): T = Await.result(db.run(program), 2 seconds)
 
@@ -71,11 +97,11 @@ object UserDataManager {
 
         val transformedDate = DM.transformString(date, zone)
 
-        val loc = AtlasQuery.getLocationFromLegacyData(legacy) match {
-            case Some(location) => location
-            case _ => state.defaultLocation
+        AtlasQuery.getLocationFromLegacyData(legacy) match {
+            case Some(loc) =>
+                UserData(first,last,tags="",transformedDate, loc.name,loc.country,loc.admin1,loc.admin2)
+            case None => throw new Exception
         }
-        UserData(first,last,tags="",transformedDate, loc.name,loc.country,loc.admin1,loc.admin2)
     }
 
     def doesTableExists(table: String): Boolean = {
@@ -108,7 +134,28 @@ object UserDataManager {
 
     def insertUserData(data: UserData, table: String): Int = {
         val messages = queryForThisTable(table)
-        Await.result(db.run(messages += data), Duration.Inf)
+        if (!doesTableExists(table)) {
+            val schema = messages.schema.create
+            Await.result(db.run(DBIO.seq(schema)), 2.seconds)
+        }
+        val res: Try[Int] = Try(Await.result(db.run(messages += data), Duration.Inf))
+        res match {
+            case Failure(ex) =>
+                state.logger.error(ex.getMessage)
+                0
+            case Success(value) => value
+        }
+    }
+
+    def insertBatchData(data: Seq[UserData], table: String) = {
+        val messages = queryForThisTable(table)
+        if (!doesTableExists(table)) {
+            val schema = messages.schema.create
+            Await.result(db.run(DBIO.seq(schema)), 2.seconds)
+        } else {
+            val rows = Await.result(db.run(sqlu"DELETE FROM #$table"), Duration.Inf)
+        }
+        Await.result(db.run(messages ++= data), Duration.Inf)
     }
 
     def deleteUserData(uid: Long, table: String): Int = {
@@ -117,6 +164,20 @@ object UserDataManager {
         Await.result(db.run(query), Duration.Inf)
     }
 
+    def moveRegister(reg: Person, source: String, destiny: String) = {
+        val sourceQuery = queryForThisTable(source)
+        val ud: UserData = Await.result(db.run(sourceQuery.filter(_.id === reg.id).result), Duration.Inf).head
+        val destQuery = queryForThisTable(destiny)
+        val res = Await.result(db.run(destQuery.filter(u => u.first === ud.first && u.last === ud.last).result), Duration.Inf).headOption
+        res match {
+            case Some(data) =>
+            case None =>
+                insertUserData(ud,destiny)
+                deleteUserData(reg.id, source)
+        }
+
+
+    }
 
     def updateUserDate(data: UserData, table: String, id: Long): Int = {
         val messages = queryForThisTable(table).filter(_.id === id).map(m => (m.first, m.last, m.tags, m.date,m.city,m.country,m.admin1,m.admin2))
@@ -137,9 +198,7 @@ object UserDataManager {
 
     def getDisplayRowsFromTable(table: String): Seq[(String, String, Long)] = {
         val messages = queryForThisTable(table)
-        val query = messages.sortBy(_.last.asc).map {
-                r => (r.last, r.first, r.id)
-        }
+        val query = messages.sortBy{ m => (m.first,m.last) }.map { r => (r.first, r.last, r.id) }
         exec(query.result)
     }
 

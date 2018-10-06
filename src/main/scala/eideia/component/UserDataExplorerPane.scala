@@ -23,34 +23,14 @@ object UserDataExplorerPane {
         hgrow = Priority.Always
     }
 
-    val toc = new ToggleGroup {
-        selectedToggle.onChange(
-            (_,old,nval) => {
-                nval match {
-                    case null => deleteButton.graphic.value = delIconInactive
-                    case _ => deleteButton.graphic.value = delIconActive
-                }
-            }
-        )
-    }
-
     val delIconActive: FontIcon = new FontIcon {
             setIconLiteral("gmi-delete")
             iconSizeProperty.value = 18
             iconColorProperty.value = Color.SlateGray
         }
 
-    val delIconInactive: FontIcon = new FontIcon {
-        setIconLiteral("gmi-delete")
-        iconSizeProperty.value = 18
-        iconColorProperty.value = Color.Silver
-    }
-
-
-    val deleteButton: ToggleButton = new ToggleButton {
-        toggleGroup = toc
-        selected = false
-        graphic = delIconInactive
+    val deleteButton: Button = new Button {
+        graphic = delIconActive
         tooltip = new Tooltip("Activar para eliminar")
         style = "-fx-background-color: #e3e4e4; -fx-background-radius: 5; -fx-background-insets: 0, 0"
     }
@@ -74,8 +54,18 @@ object UserDataExplorerPane {
         }
         tooltip = new Tooltip("Lugares")
         style = "-fx-background-color: #e3e4e4; -fx-background-radius: 5; -fx-background-insets: 0, 0"
-        //onAction = handle(CustomLocDialog.onCustomLocEntryDialog(InitApp.stage.value))
-        onAction = handle(SearchLocationHelper.onCustomLocEntryDialog(InitApp.stage.value))
+        onAction = handle(CustomLocDialog.onCustomLocEntryDialog(InitApp.stage.value))
+    }
+
+    val nowButton: Button = new Button {
+        graphic = new FontIcon {
+            setIconLiteral("gmi-access-time")
+            iconSizeProperty.value = 18
+            iconColorProperty.value = Color.SlateGray
+        }
+        tooltip = new Tooltip("Momento actual")
+        style = "-fx-background-color: #e3e4e4; -fx-background-radius: 5; -fx-background-insets: 0, 0"
+        onAction = handle(state.setNow)
     }
 
     val addButton: Button = new Button {
@@ -89,6 +79,16 @@ object UserDataExplorerPane {
         onAction = handle(DataEntryDialog.onNewDataEntryDialog(InitApp.stage.value, presenter))
     }
 
+    /* */
+
+    val rowsMenu = new ContextMenu {
+        items ++= Seq(
+            new MenuItem("Mover") {
+                onAction = handle(presenter.moveRegister)
+            }
+        )
+    }
+
     /* Table box */
 
     val choiceTable: ChoiceBox[String] = new ChoiceBox[String]() {
@@ -96,9 +96,20 @@ object UserDataExplorerPane {
     }
 
     val settingsMenu = new ContextMenu {
-        items +=  new MenuItem("Convertir datos v.1") {
-        onAction = handle(LegacyConverterDialog.onConverterInvoked)
-        }
+        items ++= Seq(
+            new MenuItem("Crear colección"){
+                onAction = handle(presenter.createTable)
+            },
+            new MenuItem("Eliminar colección"){
+                onAction = handle(presenter.deleteTable)
+            },
+            new MenuItem("Copiar colección") {
+                onAction = handle(presenter.copyTable)
+            },
+            new MenuItem("Convertir datos v.1") {
+                onAction = handle(LegacyConverterDialog.onConverterInvoked(choiceTable))
+            },
+        )
     }
 
     val settingsButton: Button = new Button {
@@ -131,6 +142,8 @@ object UserDataExplorerPane {
                 cellValueFactory = { _.value.name }
             }
         columnResizePolicy = TableView.ConstrainedResizePolicy
+        selectionModel().selectionMode = SelectionMode.Multiple
+        contextMenu = rowsMenu
     }
 
     /* Search box  */
@@ -142,7 +155,7 @@ object UserDataExplorerPane {
 
     val searchIcon: Text = new FontIcon {
         setIconLiteral("gmi-search")
-        iconSizeProperty.value = 28
+        iconSizeProperty.value = 24
         iconColorProperty.value = Color.Thistle
     }
 
@@ -152,6 +165,7 @@ object UserDataExplorerPane {
             iconSizeProperty.value = 18
             iconColorProperty.value = Color.SlateGray
         }
+        tooltip = new Tooltip("Limpiar")
         style = "-fx-background-color: #e3e4e4; -fx-background-radius: 5; -fx-background-insets: 0, 0"
         onAction = ev => presenter.clearAction(ev)
     }
@@ -187,7 +201,7 @@ object UserDataExplorerPane {
             new HBox {
                 alignment = Pos.BaselineRight
                 spacing = 4
-                children = Seq(placeButton,spacer,addButton,editButton,deleteButton)
+                children = Seq(placeButton,spacer,nowButton,addButton,editButton,deleteButton)
             }
         )
     }

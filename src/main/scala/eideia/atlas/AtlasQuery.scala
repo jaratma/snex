@@ -39,13 +39,17 @@ object AtlasQuery {
 
     def insertCustomLocation(loc: Location): Int = {
         val queryCustom = TableQuery[LocationTable]
-        Await.result(customDb.run(queryCustom += loc), 2.seconds)
+        val exists = queryCustom.filter(l => l.name === loc.name && l.admin1 === loc.admin1).result.headOption
+        val action = exists.flatMap {
+            case Some(l) => DBIO.successful(0)
+            case None => queryCustom += loc
+        }
+        Await.result(customDb.run(action), 2.seconds)
     }
 
     def deleteCustomLocation(loc: Location): Int = {
         val queryCustom = TableQuery[LocationTable]
-        //println(loc.id)
-        Await.result(customDb.run(queryCustom.filter(_.id === loc.id).delete), 2.seconds)
+        Await.result(customDb.run(queryCustom.filter(l => l.name === loc.name && l.admin1 === loc.admin1 && l.country === loc.country).delete), 2.seconds)
     }
 
     def queryTimezone(timezone: String) : Seq[AtlasQuery.LocationTable#TableElementType] = {
@@ -125,10 +129,11 @@ object AtlasQuery {
     }
 
     def getLocationFromLegacyData(legacy: LegacyEssentialFields): Option[Location] = {
-        //LegacyEssentialFields(first, last, date, zone, city, country)
-        val (zone,city,country) = legacy match { case LegacyEssentialFields(_, _, _, zone, city, country) => (zone,city,country) }
+        //LegacyEssentialFields(first, last, date, zone, city, country,lat,lng)
+        val (zone,city,country) = legacy match { case LegacyEssentialFields(_, _, _, zone, city, country,_,_) => (zone,city,country) }
         val query = messages.filter(r => (r.name like city)  && r.country === country && r.timezone ===  zone)
-        exec(query.result.headOption)
+        (Await.result(customDb.run(query.result), 3.seconds) ++ Await.result(locDb.run(query.result), 5.seconds)).headOption
+        //exec(query.result.headOption)
     }
 
     def getLocationFromUserData(userdata: UserData): Option[Location] = {
@@ -170,6 +175,8 @@ object AtlasQuery {
         def elevation = column[Double]("elevation")
         def timezone = column[String]("timezone")
         def id = column[Long]("rowid", O.PrimaryKey, O.AutoInc)
+
+        def ixname = index("one_name",(name), unique=true)
     }
 
     final class Admin1Table(tag: Tag) extends Table[Admin1](tag, "admin1") {

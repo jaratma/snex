@@ -12,6 +12,7 @@ import scalafx.scene.layout.{ColumnConstraints, GridPane, HBox}
 import scalafx.scene.paint.Color
 import eideia.{InitApp, PrefixSelectionCustomizer}
 import eideia.models.{CustomPlace, Place}
+import scalafx.collections.ObservableBuffer
 
 case class BareLoc(info: String)
 
@@ -140,11 +141,10 @@ object CustomLocDialog {
 
 
     def onCustomLocEntryDialog(stage: PrimaryStage): Unit = {
-        //dialog.resultConverter = dialogButton =>
-        //    if (dialogButton == locButtonType) {
-        //            BareLoc
-        //    }
         val result = dialog.showAndWait()
+        searchField.text.value = ""
+        geoLocResults.items = new ObservableBuffer[Place]()
+        geoLocResults.visible = false
     }
 
 }

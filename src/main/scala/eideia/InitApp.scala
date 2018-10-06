@@ -26,12 +26,14 @@ object InitApp {
     val osName: String = Properties.osName
     val userConfPath = userHome + "/.nex2"
     val userDir = new File(userConfPath)
+    val failDir = new File(userConfPath+"/failedImports")
     val userConfFile = userConfPath + "/application.conf"
     val existUserConFile: Boolean = Files.exists(Paths.get(userConfFile))
     val existsCollectionDB: Boolean =  UserDataManager.checkCollectionDB
 
 //***
     userDir.mkdir
+    failDir.mkdir()
 //***
 
     val config: NexConf = existUserConFile match {
