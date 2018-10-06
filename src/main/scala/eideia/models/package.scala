@@ -1,6 +1,7 @@
 package eideia
 
 import java.time.ZonedDateTime
+import eideia.models.UserData
 
 import eideia.atlas.AtlasQuery
 import scalafx.beans.property.{ObjectProperty, StringProperty}
@@ -9,15 +10,15 @@ package object models {
 
     case class NexConf(lang: String, locality: String, country: String, region: String, database: String, housesystem: String)
 
-    case class UserData(first:String,
-                        last:String,
-                        tags: String,
-                        date: String,
-                        city: String,
-                        country: String,
-                        admin1: String,
-                        admin2: String,
-                        id: Long = 0L)
+    //case class UserData(first:String,
+    //                    last:String,
+    //                    tags: String,
+    //                    date: String,
+    //                    city: String,
+    //                    country: String,
+    //                    admin1: String,
+    //                    admin2: String,
+    //                    id: Long = 0L)
 
 
     case class Location(

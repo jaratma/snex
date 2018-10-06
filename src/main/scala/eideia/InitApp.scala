@@ -68,6 +68,7 @@ object InitApp {
     implicit val state: State = new State(defaultLocation)
 
     AtlasQuery.initCustomDB
+    UserDataManager.initCollectionDB()
     //state.logger.info(s"Collection db exists: $existsCollectionDB")
     //state.logger.info(s"Legacy db exists: $existsLegacyDB")
 }

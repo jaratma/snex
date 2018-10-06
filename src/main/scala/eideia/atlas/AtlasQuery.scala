@@ -8,7 +8,8 @@ import eideia.{DateManager, State}
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
-import eideia.models.{Admin1, Admin2, Location, UserData}
+import eideia.models.UserData
+import eideia.models.{Admin1, Admin2, Location}
 import eideia.userdata.{LegacyEssentialFields, LocationTriplet}
 import eideia.InitApp.userConfPath
 

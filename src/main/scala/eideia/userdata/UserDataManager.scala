@@ -8,7 +8,8 @@ import scala.languageFeature.existentials
 import slick.jdbc.SQLiteProfile.api._
 import slick.jdbc.meta.MTable
 import eideia.{InitApp, State, DateManager => DM}
-import eideia.models.{Person, UserData}
+import eideia.models.UserData
+import eideia.models.{Person}
 import eideia.InitApp.userConfPath
 import eideia.atlas.AtlasQuery
 import eideia.InitApp.state
@@ -56,10 +57,13 @@ object UserDataManager {
     }
 
     def initCollectionDB(defaultDb: String = InitApp.defaultDatabase) = {
+        if (!doesTableExists(defaultDb)) {
         val queryCustom = queryForThisTable(defaultDb)
         val schema = queryCustom.schema.create
         Await.result(db.run(DBIO.seq(schema)), 2.seconds)
         state.logger.info(s"Created $defaultDb collection.")
+        } else
+            state.logger.info(s"$defaultDb collection exists.")
     }
 
     def createNewCollection(table: String) = initCollectionDB(table)
