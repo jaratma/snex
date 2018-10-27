@@ -106,8 +106,9 @@ object SearchLocationHelper {
     dialog.dialogPane().content = grid
 
 
-    def onSearchHelperDialog(stage: PrimaryStage, legacy: LegacyEssentialFields): Location = {
+    def onSearchHelperDialog(stage: PrimaryStage, legacy: LegacyEssentialFields): Option[Location] = {
         presenter.rows.clear()
+        searchField.text.value = ""
         geoLocResults.items = presenter.rows
         val country = CountryResolver.mapCodeToLocalizedCountry(InitApp.config.country)(legacy.country.take(2).toUpperCase)
         val geo = Utils.formatLongAndLat(legacy.lat, legacy.lng)
@@ -129,8 +130,8 @@ object SearchLocationHelper {
         val result = dialog.showAndWait()
 
         result match {
-            case Some(Loc(loc)) => loc
-            case _ => presenter.selectedGeoLocation.value
+            case Some(Loc(loc)) => Some(loc)
+            case _ => None
         }
     }
 

@@ -7,6 +7,7 @@ import eideia.models.{Location, Place}
 import scalafx.collections.ObservableBuffer
 import scalafx.scene.control._
 import eideia.InitApp.config
+import eideia.InitApp.logger
 import javafx.event.ActionEvent
 import scalafx.beans.property.ObjectProperty
 
@@ -60,7 +61,7 @@ class SearchLocationPresenter(countries: ChoiceBox[String],
         externLocs.clear()
         QueryGeonames.sendQuery(text,code) match {
             case Right(res) => externLocs ++= QueryGeonames.parseQuery(res)
-            case Left(err) => InitApp.state.logger.info("No response")
+            case Left(err) => logger.info("No response")
         }
         externLocs
     }

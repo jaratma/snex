@@ -1,6 +1,5 @@
 package eideia.atlas
 
-import eideia.InitApp
 import eideia.models.Location
 import org.scalatest.{FunSuite, Matchers}
 import eideia.userdata.{LegacyDataManager, LocationTriplet}
@@ -16,11 +15,13 @@ class AtlasQueryTest extends FunSuite  with  Matchers{
     }
 
     test("find region code from legacy name") {
+        println(LegacyDataManager.url)
         val triplets = LegacyDataManager.getLegacyLocationTriplets("personal")
         val arybuf = ArrayBuffer[String]()
         triplets.foreach { t => arybuf += AtlasQuery.getAdmin1CodeFromTriplet(t) }
         assert(triplets.size == arybuf.size)
-        //arybuf.foreach(println(_))
+        arybuf.foreach(println(_))
+        //assert(true)
     }
 
     test("get country code from legacy name") {
@@ -97,7 +98,7 @@ class AtlasQueryTest extends FunSuite  with  Matchers{
     }
 
     test("search location in both datatabses") {
-        val i = InitApp
+        //val i = InitApp
         val locs = AtlasQuery.searchLocation("Gurtnellen")
         assert(locs.size == 1)
         println(locs.head.name)

@@ -4,6 +4,7 @@ import java.io._
 
 import eideia.InitApp
 import eideia.InitApp.state
+import eideia.InitApp.logger
 import eideia.component.SearchLocationHelper
 import eideia.models.{Location, UserData}
 import scalafx.Includes._
@@ -86,14 +87,13 @@ class LegacyConverterPresenter(choice: ChoiceBox[String], flow: TextFlow, spane:
     }
 
     def manageRecover(legacy: LegacyEssentialFields, table: String, eid: StringProperty) = {
-        val loc: Location = SearchLocationHelper.onSearchHelperDialog(InitApp.stage.value,legacy)
-        val toBeLoc = Option(loc)
-        toBeLoc match {
+        val toBeloc: Option[Location] = SearchLocationHelper.onSearchHelperDialog(InitApp.stage.value,legacy)
+        toBeloc match {
             case Some(loc) =>
                 val leg = legacy.copy(city = loc.name, country = loc.country, zone = loc.timezone)
                 val data = UserDataManager.convertLegacyData(leg)
                 val r = UserDataManager.insertUserData(data,table)
-                state.logger.info(s"Inserted $r register.")
+                logger.info(s"Inserted $r register.")
                 val link = flow.children.find(_.id == eid)
                 link match {
                     case Some(el) =>
@@ -101,7 +101,7 @@ class LegacyConverterPresenter(choice: ChoiceBox[String], flow: TextFlow, spane:
                         val path = InitApp.failDir + s"/${eid.value}"
                         val recfile = new File(path)
                         recfile.delete()
-                        state.logger.info(s"Recovery file deleted: ${eid.value}")
+                        logger.info(s"Recovery file deleted: ${eid.value}")
                     case None =>
                 }
             case _ =>

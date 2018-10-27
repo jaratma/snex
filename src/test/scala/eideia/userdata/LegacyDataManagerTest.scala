@@ -6,6 +6,7 @@ import org.scalatest.{FunSuite, Matchers}
 
 class LegacyDataManagerTest extends FunSuite with Matchers {
     test("tables in charts.db") {
+        Class.forName("org.sqlite.JDBC")
         assert(InitApp.existsLegacyDir)
         val tables = LegacyDataManager.getTableNamesFromDb
         assert(tables.nonEmpty)

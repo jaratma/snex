@@ -12,7 +12,7 @@ class ConfigManagerTest extends FunSuite with Matchers {
         assert(conf.region == "56")
     }
 
-    test("save conf") {
+    ignore("save conf") {
         val ini: Ini = new Ini(new File("/Users/jose/.astronex/cfg.ini"))
         val conf = ConfigManager.parseLegacyIniFile(ini)
         ConfigManager.saveNexConf(conf, new File(userDir+"/snex.conf"))

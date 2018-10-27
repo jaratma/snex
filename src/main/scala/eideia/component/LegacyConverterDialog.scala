@@ -6,7 +6,7 @@ import scalafx.application.JFXApp.PrimaryStage
 import scalafx.scene.control.ButtonBar.ButtonData
 import scalafx.scene.control._
 import scalafx.scene.layout.{ColumnConstraints, GridPane}
-import eideia.InitApp.state.logger
+import eideia.InitApp.logger
 import eideia.controller.LegacyConverterPresenter
 import scalafx.beans.property.ObjectProperty
 import scalafx.geometry.Insets

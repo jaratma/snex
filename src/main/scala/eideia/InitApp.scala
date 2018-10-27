@@ -2,16 +2,20 @@ package eideia
 
 import scala.util.Properties
 import java.nio.file.{Files, Paths}
-import java.io.File
+import java.io.{File, FileInputStream, ObjectInputStream}
 import java.time.ZonedDateTime
 import java.util.Locale
 
 import eideia.atlas.{AtlasQuery, CountryResolver}
-import eideia.models.{Location, NexConf}
+import eideia.models.{Location, NexConf, Register, UserData}
 import eideia.userdata.{LocationTriplet, UserDataManager}
 import org.ini4j.Ini
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.beans.property.ObjectProperty
+import com.typesafe.scalalogging.Logger
+
+import scala.collection.mutable
+//import eideia.calc.Huber
 
 
 object InitApp {
@@ -25,14 +29,17 @@ object InitApp {
 
     val osName: String = Properties.osName
     val userConfPath = userHome + "/.nex2"
-    val userDir = new File(userConfPath)
     val failDir = new File(userConfPath+"/failedImports")
     val userConfFile = userConfPath + "/application.conf"
     val existUserConFile: Boolean = Files.exists(Paths.get(userConfFile))
     val existsCollectionDB: Boolean =  UserDataManager.checkCollectionDB
+    val customDbUrl = s"jdbc:sqlite:$userConfPath/customloc.db"
+    val collectionUrl = s"jdbc:sqlite:$userConfPath/collection.db"
+
+    val mruFile = userConfPath + "/mru.dat"
+    val existsMruFile: Boolean = Files.exists(Paths.get(mruFile))
 
 //***
-    userDir.mkdir
     failDir.mkdir()
 //***
 
@@ -52,6 +59,9 @@ object InitApp {
             ConfigManager.getUserConfig(userConfFile)
     }
 
+    implicit val logger = Logger[State]
+    AtlasQuery.initCustomDB
+
     Locale.setDefault(new Locale(config.lang, config.lang))
 
     val localizedCountries: Map[String,String] = CountryResolver.mapLocalizedCountryTocode(config.lang)
@@ -67,8 +77,26 @@ object InitApp {
 
     implicit val state: State = new State(defaultLocation)
 
-    AtlasQuery.initCustomDB
+    val mostRecentData = mutable.Queue[UserData]()
+
+    if (existsMruFile) {
+        val f = new File(InitApp.mruFile)
+        val iis = new ObjectInputStream(new FileInputStream(f))
+        val col = iis.readObject.asInstanceOf[mutable.Queue[UserData]]
+        mostRecentData ++= col
+        iis.close()
+    }
+
     UserDataManager.initCollectionDB()
-    //state.logger.info(s"Collection db exists: $existsCollectionDB")
-    //state.logger.info(s"Legacy db exists: $existsLegacyDB")
+    //logger.info(s"Collection db exists: $existsCollectionDB")
+    //logger.info(s"Legacy db exists: $existsLegacyDB")
+
+    //def displayChart(implicit state: State) = {
+    //    state.currentRegister() =  Register("personal", 1L)
+    //    val driver = new Huber(state.currentChart.value)
+    //    val planets = driver.planets
+    //    planets.foreach(println)
+    //    val houses = driver.houses
+    //    houses.foreach (println )
+    //    println(driver.vertex)
 }

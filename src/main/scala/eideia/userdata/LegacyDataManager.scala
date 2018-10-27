@@ -3,23 +3,20 @@ package eideia.userdata
 import eideia.models._
 import java.sql._
 
-import eideia.{InitApp, userdata}
 import eideia.atlas.AtlasQuery
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Properties, Success, Try}
 import scala.collection.mutable.ArrayBuffer
 
 case class LocationTriplet(city: String, region: String, country: String)
 case class LegacyEssentialFields(first: String, last: String, date: String, zone: String, city: String, country: String, lat: Double, lng: Double)
 
 object LegacyDataManager {
-    val driverClassName ="org.sqlite.JDBC"
-    def url(file: String = InitApp.legacyDBFile): String = s"jdbc:sqlite:$file"
-
-    Class.forName(driverClassName)
+    val url = s"jdbc:sqlite:${Properties.userHome}/.astronex/charts.db"
+    Class.forName("org.sqlite.JDBC")
 
     def getStatement: Try[Statement] = {
-        Try(DriverManager.getConnection(url())).map(_.createStatement())
+        Try(DriverManager.getConnection(url)).map(_.createStatement())
     }
 
     def getTableNamesFromDb : Seq[String] = {
@@ -82,7 +79,7 @@ object LegacyDataManager {
     def getLegacyLocationTriplets(table: String): Seq[LocationTriplet] = {
         val arybuf = ArrayBuffer[LocationTriplet]()
         val stmt: Try[Statement] = getStatement
-        assert(stmt.isSuccess)
+        //assert(stmt.isSuccess)
         val sql = s"select city, region, country from $table"
         val rs: ResultSet = stmt.get.executeQuery(sql)
         while (rs.next) {

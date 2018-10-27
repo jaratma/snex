@@ -35,6 +35,7 @@ class DateManagerTest extends FunSuite with Matchers {
     }
 
     test("parse string date as a LocalDateTime") {
+        Class.forName("org.sqlite.JDBC")
         val datesAsStrings = LegacyDataManager.getListOfDates("personal")
         val takeFirst = datesAsStrings.head
         val ldt: LocalDateTime = DateManager.localDateTimeFromLegacyStringDate(takeFirst)

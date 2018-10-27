@@ -1,8 +1,11 @@
 package eideia.controller
 
+import java.io._
+
 import scalafx.Includes._
 import scalafx.scene.control._
 import eideia.{InitApp, State}
+import eideia.InitApp.logger
 import eideia.userdata.UserDataManager
 import scalafx.collections.ObservableBuffer
 import eideia.models.{NexConf, Person, Register, UserData}
@@ -10,9 +13,12 @@ import scalafx.collections.transformation.FilteredBuffer
 import javafx.event.ActionEvent
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.geometry.Insets
+import scalafx.scene.control.Alert
 import scalafx.scene.control.Alert.AlertType
 import scalafx.scene.control.ButtonBar.ButtonData
 import scalafx.scene.layout.GridPane
+import scalafx.stage.FileChooser
+import scalafx.stage.FileChooser.ExtensionFilter
 
 
 class UserDataPresenter(choice: ChoiceBox[String],
@@ -72,7 +78,7 @@ class UserDataPresenter(choice: ChoiceBox[String],
         val table = state.currentRegister.value.table
         val uid = state.currentUserData.value.id
         val r = UserDataManager.updateUserDate(ud,table,uid)
-        state.logger.info(s"updated $r register(s)")
+        logger.info(s"updated $r register(s)")
         refreshExplorer(table)
         val last = if (ud.last.isEmpty) "" else s" ${ud.last }"
         val name = s"${ud.first}$last"
@@ -83,7 +89,7 @@ class UserDataPresenter(choice: ChoiceBox[String],
     def insertUser(ud: UserData) :Unit  = {
         val table = state.currentRegister.value.table
         val r = UserDataManager.insertUserData(ud,table)
-        state.logger.info(s"inserted $r register(s)")
+        logger.info(s"inserted $r register(s)")
         refreshExplorer(table)
         val p = rows.find(p => p.name.value == ud.first).head
         explorer.selectionModel().select(p)
@@ -92,21 +98,23 @@ class UserDataPresenter(choice: ChoiceBox[String],
     def deleteUser(uid: Long): Unit = {
         val its = explorer.selectionModel().selectedItems
         val table = choice.selectionModel().selectedItemProperty().value
-        val reg: Person = explorer.selectionModel().selectedItemProperty.value
+        //val reg: Person = explorer.selectionModel().selectedItemProperty.value
         val alert = new Alert(AlertType.Confirmation) {
             initOwner(InitApp.stage.value)
             title = "Confirmar"
             headerText = "Confirmar eliminar"
-            contentText = s"¿Eliminar estos registros ${reg.name.value}..."
+            contentText = s"¿Eliminar estos registros ${its.head.name.value}..."
         }
         val result = alert.showAndWait()
 
         result match  {
             case Some(ButtonType.OK) =>
-                val r = UserDataManager.deleteUserData(reg.id, table)
-                state.logger.info(s"Deleted $r ${reg.name.value}")
+                its.forEach { p =>
+                    val r = UserDataManager.deleteUserData(p.id, table)
+                    logger.info(s"Deleted $r ${p.name.value}")
+                }
                 refreshExplorer()
-            case _ => state.logger.info("Delete cancelled.")
+            case _ => logger.info("Delete cancelled.")
         }
     }
 
@@ -164,6 +172,41 @@ class UserDataPresenter(choice: ChoiceBox[String],
         }
     }
 
+    def exportTable(): Unit = {
+        val table = showExportDialog(InitApp.stage.value)
+        if (table.nonEmpty) {
+            val data: Seq[UserData] = UserDataManager.getAllRowsFromTable(table)
+            val fileChooser = new FileChooser()
+            fileChooser.setTitle("Guardar archivo")
+            fileChooser.setInitialFileName(table+".ser")
+            val selected = fileChooser.showSaveDialog(InitApp.stage.value)
+            if (selected != null) {
+                val oos = new ObjectOutputStream(new FileOutputStream(selected))
+                oos.writeObject(data)
+                oos.close()
+                logger.info("saved data")
+            }
+        }
+    }
+
+    def importTable(): Unit = {
+        val fileChooser = new FileChooser {
+            title = "Abrir archivo"
+            extensionFilters ++= Seq(new ExtensionFilter("Archivo de serialización","*.ser"))
+        }
+        val selectedFile = fileChooser.showOpenDialog(InitApp.stage.value)
+        if (selectedFile != null) {
+            val iis = new ObjectInputStream(new FileInputStream(selectedFile))
+            val col = iis.readObject.asInstanceOf[Seq[UserData]]
+            iis.close()
+            val name = "temporal"
+            UserDataManager.insertBatchData(col,name)
+            if (!UserDataManager.doesTableExists(name))
+                choice.items.value += name
+            logger.info("Datos importados a tabla temporal")
+        }
+    }
+
     def moveRegister() = {
         val reg = explorer.selectionModel().selectedItemProperty().value
         val source = choice.selectionModel().selectedItemProperty().value
@@ -173,18 +216,53 @@ class UserDataPresenter(choice: ChoiceBox[String],
         }
     }
 
+    def copyRegister() = {
+        val reg = explorer.selectionModel().selectedItemProperty().value
+        val source = choice.selectionModel().selectedItemProperty().value
+        val destiny = onMoveDialog(InitApp.stage.value)
+        if (!destiny.isEmpty) {
+            UserDataManager.copyRegister(reg,source,destiny)
+        }
+    }
+
     def deleteTable() = {
         val table: String = showDeleteDialog(InitApp.stage.value)
-        UserDataManager.dropCollection(table)
-        choice.items.value -= table
+        if (table.nonEmpty) {
+            UserDataManager.dropCollection(table)
+            choice.items.value -= table
+        }
     }
 
     def showDeleteDialog(stage: PrimaryStage): String = {
         val tables = tableNames
         tables -= config.database
+        val atLeastOne = tables.headOption
+        atLeastOne match {
+            case Some(name) =>
+                val dialog = new ChoiceDialog[String](tables.head,tables) {
+                    initOwner(stage)
+                    title = s"Eliminar tabla"
+                    contentText = "Nombre de la tabla:"
+                }
+                val result = dialog.showAndWait()
+                result match {
+                    case Some(name) => name
+                    case None       => ""
+                }
+            case None =>
+                new Alert(AlertType.Warning) {
+                    initOwner(stage)
+                    contentText = "No se puede eliminar la tabla por defecto"
+                }.showAndWait()
+                ""
+        }
+    }
+
+    def showExportDialog(stage: PrimaryStage): String = {
+        val tables = tableNames
         val dialog = new ChoiceDialog[String](tables.head,tables) {
             initOwner(stage)
-            title = s"Eliminar tabla"
+            title = s"Exportar colección"
             contentText = "Nombre de la tabla:"
         }
         val result = dialog.showAndWait()
@@ -192,6 +270,7 @@ class UserDataPresenter(choice: ChoiceBox[String],
             case Some(name) => name
             case None       => ""
         }
+
     }
 
     def showCreateDialog(stage: PrimaryStage): String  = {

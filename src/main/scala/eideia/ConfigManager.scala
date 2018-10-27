@@ -36,8 +36,9 @@ object ConfigManager {
         val loc = defaultSection.get("locality")
         val reg = defaultSection.get("region")
         val db = defaultSection.get("database")
+        val fav = defaultSection.get("favourites")
         val hs = "K"
-        NexConf(lang, loc, country, reg, db, hs)
+        NexConf(lang, loc, country, reg, db, fav, hs)
     }
 
     def saveNexConf(iniconf: NexConf, path: File): Unit = {

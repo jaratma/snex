@@ -6,7 +6,7 @@ import org.scalatest.{FunSuite, Matchers}
 
 class DirectionsTest extends FunSuite with Matchers {
 
-    test("secondary progressed planets") {
+    ignore("secondary progressed planets") {
         implicit val now = InitApp.state.setNowChart
         InitApp.state.setChartFromLoadData("personal",1)
         val stored = InitApp.state.currentChart()
@@ -15,7 +15,7 @@ class DirectionsTest extends FunSuite with Matchers {
         println(points)
     }
 
-    test("secondary progressed houses") {
+    ignore("secondary progressed houses") {
         implicit val now = InitApp.state.setNowChart
         InitApp.state.setChartFromLoadData("personal",1)
         val stored = InitApp.state.currentChart()
@@ -24,7 +24,7 @@ class DirectionsTest extends FunSuite with Matchers {
         println(houses)
     }
 
-    test("tertiary progressed planets") {
+    ignore("tertiary progressed planets") {
         implicit val now = InitApp.state.setNowChart
         InitApp.state.setChartFromLoadData("personal",1)
         val stored = InitApp.state.currentChart()
@@ -33,7 +33,7 @@ class DirectionsTest extends FunSuite with Matchers {
         println(points)
     }
 
-    test("tertiary progressed houses") {
+    ignore("tertiary progressed houses") {
         implicit val now = InitApp.state.setNowChart
         InitApp.state.setChartFromLoadData("personal",1)
         val stored = InitApp.state.currentChart()

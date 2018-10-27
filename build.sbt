@@ -32,9 +32,9 @@ libraryDependencies ++= Seq(
     "ch.qos.logback"      % "logback-classic" % "1.2.3",
     "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0",
     "org.scalafx"   %% "scalafx"   % "8.0.144-R12",
-    "org.kordamp.ikonli" % "ikonli-javafx" % "2.3.0",
-    "org.kordamp.ikonli" % "ikonli-material-pack" % "2.3.0",
-    "org.controlsfx" % "controlsfx" % "8.40.14"
+    "org.kordamp.ikonli" % "ikonli-javafx" % "2.4.0",
+    "org.kordamp.ikonli" % "ikonli-material-pack" % "2.4.0",
+    //"org.controlsfx" % "controlsfx" % "8.40.14"
 )
 
 unmanagedResourceDirectories in Compile += baseDirectory.value / "lib_extra/darwin"
@@ -53,6 +53,7 @@ initialCommands in console :=
       |val points = ephe.EpheDriver.huberPoints(chart)
     """.stripMargin
 
+test in assembly := {}
 assemblyMergeStrategy in assembly := {
     case PathList("META-INF", xs @ _*) => MergeStrategy.discard
     case x => MergeStrategy.first

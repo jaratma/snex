@@ -8,6 +8,7 @@ import eideia.models.{CustomPlace, Location, Place}
 import scalafx.collections.ObservableBuffer
 import scalafx.scene.control._
 import eideia.InitApp.config
+import eideia.InitApp.logger
 import javafx.event.ActionEvent
 import scalafx.beans.property.ObjectProperty
 
@@ -71,7 +72,7 @@ class CustomLocPresenter(countries: ChoiceBox[String],
     deleteButton.onAction = handle{
         val r = AtlasQuery.deleteCustomLocation(selectedCustomLocation.value)
         fillCustomExplorer()
-        InitApp.state.logger.info(s"Deleted $r row")
+        logger.info(s"Deleted $r row")
     }
 
     def initialCountry: String = CountryResolver.choiceOne(config.country, config.lang)
@@ -92,7 +93,7 @@ class CustomLocPresenter(countries: ChoiceBox[String],
         externLocs.clear()
         QueryGeonames.sendQuery(text,code) match {
             case Right(res) => externLocs ++= QueryGeonames.parseQuery(res)
-            case Left(err) => InitApp.state.logger.info("No response")
+            case Left(err) => logger.info("No response")
         }
         externLocs
     }

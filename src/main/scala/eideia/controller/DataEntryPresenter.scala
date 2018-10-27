@@ -7,6 +7,7 @@ import scalafx.event.ActionEvent
 import scalafx.scene.layout.GridPane
 import eideia.{InitApp, Utils}
 import eideia.InitApp.config
+import eideia.InitApp.logger
 import eideia.atlas.{AtlasQuery, CountryResolver, QueryGeonames}
 import eideia.models.{Location, Place}
 import scalafx.beans.property.ObjectProperty
@@ -50,7 +51,7 @@ class DataEntryPresenter(grid: GridPane,
                 externLocs.clear()
                 QueryGeonames.sendQuery(text,code) match {
                     case Right(res) => externLocs ++= QueryGeonames.parseQuery(res)
-                    case Left(err) => InitApp.state.logger.info("No response")
+                    case Left(err) => logger.info("No response")
                 }
                 externLocs
             case _ => columns

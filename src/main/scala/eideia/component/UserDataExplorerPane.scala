@@ -10,8 +10,9 @@ import scalafx.scene.paint.Color
 import org.kordamp.ikonli.javafx.FontIcon
 import eideia.InitApp.state
 import eideia.InitApp
-import eideia.models.Person
+import eideia.models.{Person, UserData}
 import eideia.controller.UserDataPresenter
+import eideia.userdata.UserDataManager
 import scalafx.scene.control.MenuItem._
 
 object UserDataExplorerPane {
@@ -31,7 +32,7 @@ object UserDataExplorerPane {
 
     val deleteButton: Button = new Button {
         graphic = delIconActive
-        tooltip = new Tooltip("Activar para eliminar")
+        tooltip = new Tooltip("Eliminar registro")
         style = "-fx-background-color: #e3e4e4; -fx-background-radius: 5; -fx-background-insets: 0, 0"
     }
 
@@ -68,6 +69,60 @@ object UserDataExplorerPane {
         onAction = handle(state.setNow)
     }
 
+    val bookmarksMenu = new ContextMenu {
+        items ++= Seq()
+    }
+
+    val bookmarksButton: Button = new Button {
+        graphic = new FontIcon {
+            setIconLiteral("gmi-book")
+            iconSizeProperty.value = 18
+            iconColorProperty.value = Color.SlateGray
+        }
+        tooltip = new Tooltip("Marcadores")
+        style = "-fx-background-color: #e3e4e4; -fx-background-radius: 5; -fx-background-insets: 0, 0"
+        onMouseClicked = ev => {
+            bookmarksMenu.items.clear()
+            val fav: Seq[UserData] = UserDataManager.getAllRowsFromTable(config.bookmarks)
+            fav.foreach { u =>
+                bookmarksMenu.items += new MenuItem(u.first + " " + u.last) {
+                    onAction = handle {
+                        state.currentUserData.value = u
+                        state.infoLabels.update(state.currentUserData.value)
+                    }
+                }
+            }
+            bookmarksMenu.show(this, ev.getScreenX, ev.getScreenY)
+        }
+    }
+
+
+    val histMenu = new ContextMenu {
+        items ++= Seq()
+    }
+
+    val recentButton: Button = new Button {
+        graphic = new FontIcon {
+            setIconLiteral("gmi-recent-actors")
+            iconSizeProperty.value = 18
+            iconColorProperty.value = Color.SlateGray
+        }
+        tooltip = new Tooltip("Registros recientes")
+        style = "-fx-background-color: #e3e4e4; -fx-background-radius: 5; -fx-background-insets: 0, 0"
+        onMouseClicked = ev => {
+            histMenu.items.clear()
+            InitApp.mostRecentData.foreach { u =>
+                histMenu.items += new MenuItem(u.first + " " + u.last) {
+                    onAction = handle {
+                        state.currentUserData.value = u
+                        state.infoLabels.update(state.currentUserData.value)
+                    }
+                }
+            }
+            histMenu.show(this, ev.getScreenX, ev.getScreenY)
+        }
+    }
+
     val addButton: Button = new Button {
         graphic = new FontIcon {
             setIconLiteral("gmi-add")
@@ -83,11 +138,16 @@ object UserDataExplorerPane {
 
     val rowsMenu = new ContextMenu {
         items ++= Seq(
+            new MenuItem("Copiar") {
+                onAction = handle(presenter.copyRegister)
+            },
             new MenuItem("Mover") {
                 onAction = handle(presenter.moveRegister)
-            }
+            },
         )
     }
+
+    /* */
 
     /* Table box */
 
@@ -105,6 +165,12 @@ object UserDataExplorerPane {
             },
             new MenuItem("Copiar colección") {
                 onAction = handle(presenter.copyTable)
+            },
+            new MenuItem("Exportar colección") {
+                onAction = handle(presenter.exportTable)
+            },
+            new MenuItem("Importar colección") {
+                onAction = handle(presenter.importTable)
             },
             new MenuItem("Convertir datos v.1") {
                 onAction = handle(LegacyConverterDialog.onConverterInvoked(choiceTable))
@@ -201,7 +267,7 @@ object UserDataExplorerPane {
             new HBox {
                 alignment = Pos.BaselineRight
                 spacing = 4
-                children = Seq(placeButton,spacer,nowButton,addButton,editButton,deleteButton)
+                children = Seq(placeButton,spacer,nowButton,bookmarksButton,recentButton,addButton,editButton,deleteButton)
             }
         )
     }
@@ -210,7 +276,9 @@ object UserDataExplorerPane {
     private val presenter = new UserDataPresenter(choiceTable, userExplorer,searchField,deleteButton)
 
     val explorerPane = new VBox {
-        padding = Insets(10)
+        prefWidth = 320
+        prefHeight = 700
+        padding = Insets(6)
         spacing = 6
         children = List(
             card,
@@ -218,5 +286,6 @@ object UserDataExplorerPane {
             tableBox,
             userExplorer
         )
+        vgrow = Priority.Always
     }
 }

@@ -5,7 +5,7 @@ import eideia.ephe.EpheDriver
 import org.scalatest.{FunSuite, Matchers}
 
 class AspectsTest extends FunSuite with Matchers{
-    test("calc aspects for huber planets") {
+    ignore("calc aspects for huber planets") {
         InitApp
         InitApp.state.setChartFromLoadData("personal",1)
         val chart = InitApp.state.currentChart()

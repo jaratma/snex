@@ -9,21 +9,21 @@ import slick.jdbc.SQLiteProfile.api._
 import slick.jdbc.meta.MTable
 import eideia.{InitApp, State, DateManager => DM}
 import eideia.models.UserData
-import eideia.models.{Person}
-import eideia.InitApp.userConfPath
+import eideia.models.Person
 import eideia.atlas.AtlasQuery
 import eideia.InitApp.state
-
-import scala.util.{Failure, Success, Try}
+import eideia.InitApp.logger
+import scala.util.{Failure, Properties, Success, Try}
 
 
 object UserDataManager {
     implicit val executor =  ExecutionContext.fromExecutor(new ForkJoinPool(20))
     implicit lazy val existentials: existentials = language.existentials
 
-    val url = s"jdbc:sqlite:$userConfPath/collection.db"
+    Class.forName("org.sqlite.JDBC")
+    val url = s"jdbc:sqlite:${Properties.userHome}/.nex2/collection.db"
     val driver = "org.sqlite.JDBC"
-    val db = Database.forURL(url, driver)
+    val colDB = Database.forURL(url, driver)
 
     class UserBase(name: String) {
         class UserDataTable(tag: Tag) extends Table[UserData](tag, s"$name") {
@@ -50,7 +50,7 @@ object UserDataManager {
     }
 
     def checkCollectionDB: Boolean = {
-        val tables : Future[Vector[MTable]] = db.run(MTable.getTables)
+        val tables : Future[Vector[MTable]] = colDB.run(MTable.getTables)
         val res = Await.result(tables,Duration.Inf)
         val defaultDb = InitApp.defaultDatabase
         res.toList.map(_.name.name).contains(defaultDb)
@@ -58,12 +58,12 @@ object UserDataManager {
 
     def initCollectionDB(defaultDb: String = InitApp.defaultDatabase) = {
         if (!doesTableExists(defaultDb)) {
-        val queryCustom = queryForThisTable(defaultDb)
-        val schema = queryCustom.schema.create
-        Await.result(db.run(DBIO.seq(schema)), 2.seconds)
-        state.logger.info(s"Created $defaultDb collection.")
+            val queryCustom = queryForThisTable(defaultDb)
+            val schema = queryCustom.schema.create
+            Await.result(colDB.run(DBIO.seq(schema)), 2.seconds)
+            logger.info(s"Created $defaultDb collection.")
         } else
-            state.logger.info(s"$defaultDb collection exists.")
+            logger.info(s"$defaultDb collection exists.")
     }
 
     def createNewCollection(table: String) = initCollectionDB(table)
@@ -71,8 +71,8 @@ object UserDataManager {
     def dropCollection(table: String) = {
         val queryCustom = queryForThisTable(table)
         val schema = queryCustom.schema.drop
-        Await.result(db.run(DBIO.seq(schema)), 2.seconds)
-        state.logger.info(s"Deleted $table collection.")
+        Await.result(colDB.run(DBIO.seq(schema)), 2.seconds)
+        logger.info(s"Deleted $table collection.")
     }
 
     def copyCollection(source: String, destiny :String) = {
@@ -80,16 +80,16 @@ object UserDataManager {
         val destQuery = queryForThisTable(destiny)
         if (!doesTableExists(destiny)) {
             val schema = destQuery.schema.create
-            Await.result(db.run(DBIO.seq(schema)), 2.seconds)
+            Await.result(colDB.run(DBIO.seq(schema)), 2.seconds)
         } else {
-            val rows = Await.result(db.run(sqlu"DELETE FROM #$destiny"), Duration.Inf)
+            val rows = Await.result(colDB.run(sqlu"DELETE FROM #$destiny"), Duration.Inf)
         }
-        val col: Seq[UserData] = Await.result(db.run(sourceQuery.result), 2.seconds)
-        Await.result(db.run(destQuery ++= col), 2.seconds)
-        state.logger.info(s"Data copied from $source to $destiny.")
+        val col: Seq[UserData] = Await.result(colDB.run(sourceQuery.result), 2.seconds)
+        Await.result(colDB.run(destQuery ++= col), 2.seconds)
+        logger.info(s"Data copied from $source to $destiny.")
     }
 
-    def exec[T](program: DBIO[T]): T = Await.result(db.run(program), 2 seconds)
+    def exec[T](program: DBIO[T]): T = Await.result(colDB.run(program), 2 seconds)
 
     def convertLegacyData(legacy: LegacyEssentialFields)(implicit state: State): UserData = {
         val first: String = legacy.first
@@ -109,13 +109,13 @@ object UserDataManager {
     }
 
     def doesTableExists(table: String): Boolean = {
-        val tables : Future[Vector[MTable]] = db.run(MTable.getTables)
+        val tables : Future[Vector[MTable]] = colDB.run(MTable.getTables)
         val res = Await.result(tables,Duration.Inf)
         res.toList.map(_.name.name).contains(table)
     }
 
     def getTableNames: Seq[String] = {
-        val tables : Future[Vector[MTable]] = db.run(MTable.getTables)
+        val tables : Future[Vector[MTable]] = colDB.run(MTable.getTables)
         val res = Await.result(tables,Duration.Inf)
         res.toList.map(_.name.name)
     }
@@ -127,12 +127,12 @@ object UserDataManager {
 
         if (!doesTableExists(table)) {
             val schema = messages.schema.create
-            Await.result(db.run(DBIO.seq(schema)), 2.seconds)
+            Await.result(colDB.run(DBIO.seq(schema)), 2.seconds)
         } else {
-            val rows = Await.result(db.run(sqlu"DELETE FROM #$table"), Duration.Inf)
+            val rows = Await.result(colDB.run(sqlu"DELETE FROM #$table"), Duration.Inf)
         }
-        val rows: Option[Int] = Await.result(db.run(messages ++= newUserData), Duration.Inf)
-        state.logger.info(s"Inserted ${rows.get} rows.")
+        val rows: Option[Int] = Await.result(colDB.run(messages ++= newUserData), Duration.Inf)
+        logger.info(s"Inserted ${rows.get} rows.")
         rows
     }
 
@@ -140,12 +140,12 @@ object UserDataManager {
         val messages = queryForThisTable(table)
         if (!doesTableExists(table)) {
             val schema = messages.schema.create
-            Await.result(db.run(DBIO.seq(schema)), 2.seconds)
+            Await.result(colDB.run(DBIO.seq(schema)), 2.seconds)
         }
-        val res: Try[Int] = Try(Await.result(db.run(messages += data), Duration.Inf))
+        val res: Try[Int] = Try(Await.result(colDB.run(messages += data), Duration.Inf))
         res match {
             case Failure(ex) =>
-                state.logger.error(ex.getMessage)
+                logger.error(ex.getMessage)
                 0
             case Success(value) => value
         }
@@ -155,40 +155,50 @@ object UserDataManager {
         val messages = queryForThisTable(table)
         if (!doesTableExists(table)) {
             val schema = messages.schema.create
-            Await.result(db.run(DBIO.seq(schema)), 2.seconds)
+            Await.result(colDB.run(DBIO.seq(schema)), 2.seconds)
         } else {
-            val rows = Await.result(db.run(sqlu"DELETE FROM #$table"), Duration.Inf)
+            val rows = Await.result(colDB.run(sqlu"DELETE FROM #$table"), Duration.Inf)
         }
-        Await.result(db.run(messages ++= data), Duration.Inf)
+        Await.result(colDB.run(messages ++= data), Duration.Inf)
     }
 
     def deleteUserData(uid: Long, table: String): Int = {
         val messages = queryForThisTable(table)
         val query = messages.filter(_.id === uid).delete
-        Await.result(db.run(query), Duration.Inf)
+        Await.result(colDB.run(query), Duration.Inf)
     }
 
     def moveRegister(reg: Person, source: String, destiny: String) = {
         val sourceQuery = queryForThisTable(source)
-        val ud: UserData = Await.result(db.run(sourceQuery.filter(_.id === reg.id).result), Duration.Inf).head
+        val ud: UserData = Await.result(colDB.run(sourceQuery.filter(_.id === reg.id).result), Duration.Inf).head
         val destQuery = queryForThisTable(destiny)
-        val res = Await.result(db.run(destQuery.filter(u => u.first === ud.first && u.last === ud.last).result), Duration.Inf).headOption
+        val res = Await.result(colDB.run(destQuery.filter(u => u.first === ud.first && u.last === ud.last).result), Duration.Inf).headOption
         res match {
             case Some(data) =>
             case None =>
-                insertUserData(ud,destiny)
+                insertUserData(ud, destiny)
                 deleteUserData(reg.id, source)
         }
+    }
 
-
+    def copyRegister(reg: Person, source: String, destiny: String) = {
+        val sourceQuery = queryForThisTable(source)
+        val ud: UserData = Await.result(colDB.run(sourceQuery.filter(_.id === reg.id).result), Duration.Inf).head
+        val destQuery = queryForThisTable(destiny)
+        val res = Await.result(colDB.run(destQuery.filter(u => u.first === ud.first && u.last === ud.last).result), Duration.Inf).headOption
+        res match {
+            case Some(data) =>
+            case None =>
+                insertUserData(ud, destiny)
+        }
     }
 
     def updateUserDate(data: UserData, table: String, id: Long): Int = {
         val messages = queryForThisTable(table).filter(_.id === id).map(m => (m.first, m.last, m.tags, m.date,m.city,m.country,m.admin1,m.admin2))
-        Await.result(db.run(messages.update((data.first,data.last,data.tags,data.date,data.city,data.country,data.admin1,data.admin2))), Duration.Inf)
+        Await.result(colDB.run(messages.update((data.first,data.last,data.tags,data.date,data.city,data.country,data.admin1,data.admin2))), Duration.Inf)
     }
 
-    def loadRegisterById(table: String, id: Long) : Option[UserData] = {
+    def loadRegisterById(table: String, id: Long): Option[UserData] = {
         val messages = queryForThisTable(table)
         val query = messages.filter(_.id === id)
         exec(query.result.headOption)
@@ -197,7 +207,7 @@ object UserDataManager {
     def searchChartByName(name: String, table: String): Seq[UserData] = {
         val messages = queryForThisTable(table)
         val query = messages.filter(m  => (m.first like s"${name}%") || (m.last like s"${name}%")  )
-        exec(query.result)
+        Await.result(colDB.run(query.result), 2 seconds)
     }
 
     def getDisplayRowsFromTable(table: String): Seq[(String, String, Long)] = {
@@ -207,8 +217,16 @@ object UserDataManager {
     }
 
    def getAllRowsFromDB: Seq[UserData] = {
-       val tables = getTableNames
+       val tables: Seq[String] = getTableNames
        (for (t <- tables) yield exec(queryForThisTable(t).result)).flatten
    }
+
+    def getAllRowsFromTable(table:String): Seq[UserData] = {
+        if (doesTableExists(table))
+            exec(queryForThisTable(table).result)
+        else
+            Seq[UserData]()
+    }
+
 }
 

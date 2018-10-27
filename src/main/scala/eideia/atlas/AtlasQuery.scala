@@ -4,14 +4,16 @@ import java.util.concurrent.ForkJoinPool
 
 import slick.jdbc.meta.MTable
 import slick.jdbc.SQLiteProfile.api._
-import eideia.{DateManager, State}
+import eideia.{DateManager, InitApp, State}
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
 import eideia.models.UserData
 import eideia.models.{Admin1, Admin2, Location}
 import eideia.userdata.{LegacyEssentialFields, LocationTriplet}
-import eideia.InitApp.userConfPath
+
+import scala.util.Properties
+import InitApp.logger
 
 object AtlasQuery {
     implicit val executor =  ExecutionContext.fromExecutor(new ForkJoinPool(2))
@@ -22,20 +24,20 @@ object AtlasQuery {
 /*
     Custom atlas db
  */
-    val url = s"jdbc:sqlite:$userConfPath/customloc.db"
+    val url = s"jdbc:sqlite:${Properties.userHome}/.nex2/customloc.db"
     val driver = "org.sqlite.JDBC"
     val customDb = Database.forURL(url, driver)
 
-    def initCustomDB(implicit state: State) = {
+    def initCustomDB(/*implicit state: State*/): Unit = {
         val tables : Future[Vector[MTable]] = customDb.run(MTable.getTables)
         val res = Await.result(tables,Duration.Inf)
         if (!res.toList.map(_.name.name).contains("cities")) {
             val queryCustom = TableQuery[LocationTable]
             val schema = queryCustom.schema.create
             Await.result(customDb.run(DBIO.seq(schema)), 2.seconds)
-            state.logger.info("Created custom location database.")
+            logger.info("Created custom location database.")
         } else
-            state.logger.info("Custom location database exists. Skipping.")
+            logger.info("Custom location database exists. Skipping.")
     }
 
     def insertCustomLocation(loc: Location): Int = {

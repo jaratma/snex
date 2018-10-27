@@ -1,17 +1,17 @@
 package eideia
 
-import com.typesafe.scalalogging.Logger
 import eideia.InitApp.ZDT
+import eideia.InitApp.{logger, mostRecentData}
 import scalafx.beans.property.{ObjectProperty, StringProperty}
 import scalafx.beans.binding.{Bindings, ObjectBinding}
 import eideia.models._
 import eideia.atlas.AtlasQuery
+import eideia.surface.CanvasSurface
 import eideia.userdata.UserDataManager
 
 
 class State(val defaultLocation: Location) {
 
-    val logger = Logger[State]
 
     def localnow: ObjectProperty[ZDT] = new ObjectProperty[ZDT](this, "localnow", DateManager.now(InitApp.defaultTimeZone))
 
@@ -30,15 +30,13 @@ class State(val defaultLocation: Location) {
                 val utc = DateManager.utcFromLocal(date)
                 currentChart.value = Chart(utc, location.latitude, location.longitude)
                 logger.info(s"Current User: $nval")
+                if (!mostRecentData.contains(nval))
+                    mostRecentData += nval
             }
         )
     }
 
-    def setNow = {
-        currentUserData.value = setUserFromHereAndNow
-        currentChart.value = setNowChart
-        infoLabels.update(currentUserData.value)
-    }
+
 
     val infoLabels = InfoLabels(currentUserData(), localnow.value.toString)
     val currentRegister = new ObjectProperty[Register](this, "currentRegister", Register(currentDatabase.value, 0L)) {
@@ -49,6 +47,19 @@ class State(val defaultLocation: Location) {
         }
     }
 
+    val currentOperation = new StringProperty(this,"currentOp" ) {
+        onChange(
+            (_,_,op) => {
+                CanvasSurface.invoqueOp(op,currentChart.value)
+            }
+        )
+    }
+
+    def setNow = {
+        currentUserData.value = setUserFromHereAndNow
+        currentChart.value = setNowChart
+        infoLabels.update(currentUserData.value)
+    }
 
     def setNowChart: Chart = Chart(utcnow.value, defaultLocation.latitude, defaultLocation.longitude)
 
