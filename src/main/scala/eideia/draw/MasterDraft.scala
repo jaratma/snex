@@ -1,16 +1,19 @@
 package eideia.draw
 
+import eideia.Glyphs
 import scalafx.Includes._
-import scalafx.scene.shape.{Circle, Line, Shape}
+import scalafx.scene.shape._
 
 import scala.collection.mutable
 import scalafx.beans.property.DoubleProperty
-import scalafx.scene.layout.Pane
+import scalafx.scene.layout.{Border, Pane}
 import scalafx.scene.paint.Color
 import eideia.InitApp.state
 import eideia.calc.Huber
 import eideia.charts.BasicChart
 import eideia.draw.DimObject._
+import scalafx.scene.canvas.Canvas
+import scalafx.scene.text.{Font, Text}
 
 object MasterDraft {
 
@@ -18,7 +21,6 @@ object MasterDraft {
         println("reached here")
     }
 
-    def drawCrossPoints: Unit = ???
 
     def drawRadix(pane: Pane): Unit = {
         val driver = new Huber(state.currentChart.value)
@@ -26,8 +28,29 @@ object MasterDraft {
         pane.children_=(drawRadialLines(pane,chartType) ++
             drawInnerCircles(pane) ++
             makeInnerRule(pane, chartType) ++
-            makeOuterRule(pane, chartType))
+            makeOuterRule(pane, chartType)  ++
+            drawSigns(pane,chartType)
+        )
     }
+
+    def drawSigns(pane: Pane, chart: BasicChart): Seq[Text] = {
+        lazy val radius = DoubleProperty(Math.min(pane.widthProperty.doubleValue()/2,pane.heightProperty.doubleValue()/2))
+        radius <== min(pane.widthProperty/2 * RadInnerRuler, pane.heightProperty/2 * RadInnerRuler)
+        val angle = chart.getRotationAngle
+        val zodGlyphs: Seq[Text] = Glyphs.ZodGlyphs
+        for ((z,i) <- zodGlyphs zipWithIndex) {
+            val b = z.layoutBounds
+            z.translateX <== pane.width/2 - b.value.getWidth/2
+            z.translateY <== pane.height/2 + b.value.getHeight/2
+            z.scaleX <== radius * Scl
+            z.scaleY <== radius * Scl
+            z.rotate = angle - i*30 + 90
+            z.layoutX <== radius * SignRadFac * Math.cos(Math.toRadians(angle - i*30))
+            z.layoutY <== radius * SignRadFac * Math.sin(Math.toRadians(angle - i*30))
+        }
+        zodGlyphs
+    }
+
 
     def makeInnerRule(pane: Pane, chart: BasicChart) = {
         val offset = chart.getOffset
@@ -115,6 +138,16 @@ object MasterDraft {
         innerCircle.centerY <== pane.height/2
         innerCircle.radius <== size * InnerRad
 
+        val testPoint = new Circle {
+            fill = Color.Black
+            radius = 3
+            centerX = 300 * Math.cos(Math.toRadians(180))
+            centerY = 300 * Math.sin(Math.toRadians(180))
+            translateX <== pane.width/2
+            translateY <== pane.height/2
+        }
+
         Seq( innerCircle, veryInnerCircle )
     }
+
 }

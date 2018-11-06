@@ -27,10 +27,13 @@ object InitApp {
     val existsLegacyDB: Boolean = Files.exists(Paths.get(userHome + "/.astronex/charts.db"))
     val legacyDBFile = userHome + "/.astronex/charts.db"
 
+
+
     val osName: String = Properties.osName
-    val userConfPath = userHome + "/.nex2"
+    val userConfPath: String = userHome + "/.nex2"
     val failDir = new File(userConfPath+"/failedImports")
     val userConfFile = userConfPath + "/application.conf"
+    val userDir = new File(userConfPath)
     val existUserConFile: Boolean = Files.exists(Paths.get(userConfFile))
     val existsCollectionDB: Boolean =  UserDataManager.checkCollectionDB
     val customDbUrl = s"jdbc:sqlite:$userConfPath/customloc.db"

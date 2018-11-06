@@ -29,6 +29,7 @@ class State(val defaultLocation: Location) {
                 val location: Location = AtlasQuery.getLocationFromUserData(nval).getOrElse(InitApp.defaultLocation)
                 val utc = DateManager.utcFromLocal(date)
                 currentChart.value = Chart(utc, location.latitude, location.longitude)
+                CanvasSurface.invoqueOp(currentOperation.value,currentChart.value)
                 logger.info(s"Current User: $nval")
                 if (!mostRecentData.contains(nval))
                     mostRecentData += nval

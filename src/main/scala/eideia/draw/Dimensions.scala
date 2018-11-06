@@ -10,6 +10,10 @@ trait Dimensions {
     val InnerRuleMarks = List(-0.028,-0.018,-0.008)
     val OuterRuleMarks = List(0.016,0.010,0.006)
     val MidRuleMarks = List(0.014,0.010,0.006)
+
+
+    val Scl = 0.004
+    val SignRadFac = 1.15
 }
 
 object DimObject extends Dimensions
